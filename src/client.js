@@ -2,30 +2,47 @@ var _ = require('./util');
 
 var db = require('./client-db');
 
-var httpsKey = fs.readFileSync(_.path.join(__dirname, '../../keys/server.key'));
-var httpsCert = fs.readFileSync(_.path.join(__dirname, '../../keys/server.crt'));
+var httpsKey = _.fs.readFileSync(_.path.join(__dirname, '../keys/server.key'));
+var httpsCert = _.fs.readFileSync(_.path.join(__dirname, '../keys/server.crt'));
 
 function makeRequest(opts) {
+
+  // provide opts path, data, and method
   var request = _.defer();
+  var path = opts.path || '/';
   opts = {
-    port: opts.port || 8888,
-    hostname: opts.hostname || 'localhost',
-    path: opts.path || '/',
+    uri: 'https://test.hkr.io:8888' + path,
+    body: opts.data ? JSON.stringify(opts.data) : opts.data,
     method: opts.method || 'GET',
     key: opts.key || httpsKey,
     cert: opts.cert || httpsCert,
     ca: [ opts.cert || httpsCert ],
-    rejectUnauthorized: false
+    rejectUnauthorized: true
   };
-  console.log('SENDING ', opts);
   _.request(opts, function(err, response) {
     if(err) return request.reject(err, response);
-    else request.resolve(response);
+    else request.resolve(response.body);
   });
   return request.promise;
 }
 
+function sendServerNameRequest(name, request) {
+  var send = _.defer();
+  db.servers.get(name).then(function(server) {
+    makeRequest(_.extend(request, {
+      host: server.host,
+      key: server.key,
+      cert: server.cert
+    })).then(send.resolve, send.reject);
+  }, send.reject);
+  return send.promise;
+}
+
 var g = module.exports = {};
+
+g.start = function() {
+  return db.start();
+}
 
 g.helloworld = function() {
   return makeRequest({
@@ -33,44 +50,58 @@ g.helloworld = function() {
   });
 }
 
-g.helloworld().then(function(asdf) {
-  console.log('SUCCESS', asdf);
-}, function(err) {
-  console.log('ERROR', err);
-});
-
 g.servers = {};
 
+g.servers.list = function() {
+  return db.servers.list();
+}
+
 g.servers.add = function(name, host, key, cert) {
+  return db.servers.add(name, host, key, cert);
+}
+
+g.servers.get = function(name) {
+  return db.servers.get(name);
 }
 
 g.servers.rename = function(name, newName) {
-
+  return db.servers.rename(name, newName);
 }
 
 g.servers.remove = function(name) {
-
+  return db.servers.remove(name);
 }
 
 g.apps = {};
 
-g.apps.create = function(name, repoUrl, deployKey) {
+g.apps.list = function() {
+  return db.apps.list();
+}
 
+g.apps.add = function(name, repoUrl, deployKey) {
+  return db.apps.add(name, repoUrl, deployKey);
 }
 
 g.apps.get = function(name) {
-
+  return db.apps.get(name);
 }
 
 g.apps.rename = function(name, newName) {
-
+  return db.apps.rename(name, newName);
 }
 
 g.apps.remove = function(name) {
-
+  return db.apps.remove(name);
 }
 
 g.builds = {};
+
+g.builds.list = function(serverName) {
+  return sendServerNameRequest(serverName, {
+    path: '/builds/',
+    method: 'GET'
+  });
+}
 
 g.builds.create = function(serverName, appName, refSpec) {
   var opts = {};

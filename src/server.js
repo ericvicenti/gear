@@ -12,6 +12,14 @@ app.get('/', function(req, res) {
   res.send('hello world');
 });
 
+app.get('/builds', function(req, res) {
+  res.send('["list","of","builds"]');
+});
+
+app.get('/instances', function(req, res) {
+  res.send('["list","of","instances"]');
+});
+
 var httpsKey = _.fs.readFileSync('/root/server.key');
 var httpsCert = _.fs.readFileSync('/root/server.crt');
 
