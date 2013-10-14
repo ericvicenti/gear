@@ -1,0 +1,12 @@
+{
+  "name": "gear",
+  "version": "0.0.1",
+  "main": "src/client",
+  "dependencies": {
+    "underscore": "1.5.x",
+    "underscore.string": "2.3.x",
+    "q": "0.9.x",
+    "express": "3.4.x",
+    "sqlite3": "2.1.x"
+  }
+}
