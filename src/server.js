@@ -12,8 +12,8 @@ app.get('/', function(req, res) {
   res.send('hello world');
 });
 
-var httpsCert = fs.readFileSync('/root/server.key');
-var httpsKey = fs.readFileSync('/root/server.crt');
+var httpsCert = _.fs.readFileSync('/root/server.key');
+var httpsKey = _.fs.readFileSync('/root/server.crt');
 
 var httpsOpts = {
   key: httpsKey,
