@@ -2,12 +2,12 @@ var _ = require('./util');
 
 var db = require('./client-db');
 
-var httpsKey = fs.readFileSync(__dirname + '/asdf.key');
-var httpsCert = fs.readFileSync(__dirname + '/asdf.cert');
+var httpsKey = fs.readFileSync(_.path.join(__dirname, '../../keys/server.key'));
+var httpsCert = fs.readFileSync(_.path.join(__dirname, '../../keys/server.crt'));
 
 function makeRequest(opts) {
   var request = _.defer();
-  _.request({
+  opts = {
     port: opts.port || 8888,
     hostname: opts.hostname || 'localhost',
     path: opts.path || '/',
@@ -16,7 +16,9 @@ function makeRequest(opts) {
     cert: opts.cert || httpsCert,
     ca: [ opts.cert || httpsCert ],
     rejectUnauthorized: false
-  }, function(err, response) {
+  };
+  console.log('SENDING ', opts);
+  _.request(opts, function(err, response) {
     if(err) return request.reject(err, response);
     else request.resolve(response);
   });
@@ -24,6 +26,18 @@ function makeRequest(opts) {
 }
 
 var g = module.exports = {};
+
+g.helloworld = function() {
+  return makeRequest({
+    hostname: 'test.hkr.io'
+  });
+}
+
+g.helloworld().then(function(asdf) {
+  console.log('SUCCESS', asdf);
+}, function(err) {
+  console.log('ERROR', err);
+});
 
 g.servers = {};
 
