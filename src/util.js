@@ -11,7 +11,7 @@ _.str = require('underscore.string');
 _.mixin({
   ensureDirectorySync: function(dir) {
     // synchronously ensure that a directory exists. only use while setting up the app!
-    if(!fs.existsSync(dir)) fs.mkdirSync(dir);
+    if(!_.fs.existsSync(dir)) _.fs.mkdirSync(dir);
   },
   defer: function() {
     return _.Q.defer();
