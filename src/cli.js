@@ -69,10 +69,33 @@ client.start().then(function() {
               return cliResponse(client.servers.remove(serverName));
             case 'builds':
             case 'build':
-              return cliResponse(client.builds.list(serverName));
+              var id = args.shift();
+              if(!id) return cliResponse(client.builds.list(serverName));
+              else return client.builds.get(serverName, id).then(function(build) {
+                command = args.shift();
+                if(!command) console.log(build);
+                switch (command) {
+                  case 'remove':
+                    return cliResponse(client.builds.remove(serverName, id));
+                  default:
+                    throw new Error('Cannot run "'+command+'" command on a build');
+                }
+              }, cliErrorHandler);
             case 'instances':
             case 'instance':
               return cliResponse(client.instances.list(serverName));
+              var instanceName = args.shift();
+              if(!instanceName) return cliResponse(client.instances.list(serverName));
+              else return client.instances.get(serverName, instanceName).then(function(instance) {
+                command = args.shift();
+                if(!command) console.log(instance);
+                switch (command) {
+                  case 'remove':
+                    return cliResponse(client.instances.remove(serverName, instanceName));
+                  default:
+                    throw new Error('Cannot run "'+command+'" command on an instance');
+                }
+              }, cliErrorHandler);
             default:
               throw new Error('Cannot run "'+command+'" on a server');
           }

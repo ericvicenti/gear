@@ -22,6 +22,19 @@ app.get('/', function(req, res) {
   res.send('hello world');
 });
 
+app.post('/builds', function(req, res) {
+  var d = req.body;
+  sendResponse(res, db.builds.add('unstarted', d.repoUrl, d.deployKey, d.refspec))
+});
+
+app.get('/builds/:id', function(req, res) {
+  sendResponse(res, db.builds.get(req.params.id));
+});
+
+app.del('/builds/:id', function(req, res) {
+  sendResponse(res, db.builds.remove(req.params.id));
+});
+
 app.get('/builds', function(req, res) {
   sendResponse(res, db.builds.list());
 });

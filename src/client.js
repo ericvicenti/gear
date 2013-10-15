@@ -97,70 +97,90 @@ g.apps.remove = function(name) {
 g.builds = {};
 
 g.builds.list = function(serverName) {
-  return sendServerNameRequest(serverName, {
-    path: '/builds',
-    method: 'GET'
-  });
+  var opts = {};
+  opts.path = '/builds';
+  return sendServerNameRequest(serverName, opts);
 }
 
 g.builds.create = function(serverName, appName, refSpec) {
-  var opts = {};
-  opts.method = 'POST';
-  opts.path = '/builds';
-
+  var create = _.defer();
+  db.apps.get(appName).then(function(app) {
+    var opts = {};
+    opts.method = 'POST';
+    opts.path = '/builds';
+    opts.data = {
+      refSpec: refSpec,
+      repoUrl: app.repoUrl,
+      deployKey: app.deployKey
+    }
+    sendServerNameRequest(serverName, opts).then(create.resolve, create.reject);
+  }, create.reject);
+  return create.promise;
 }
 
-g.builds.get = function(buildId) {
+g.builds.get = function(serverName, buildId) {
   var opts = {};
   opts.path = '/builds/'+buildId;
-
+  return sendServerNameRequest(serverName, opts);
 }
 
-g.builds.remove = function(buildId) {
+g.builds.remove = function(serverName, buildId) {
   var opts = {};
   opts.method = 'DELETE';
   opts.path = '/builds/'+buildId;
-
+  return sendServerNameRequest(serverName, opts);
 }
 
 g.instances = {};
 
 g.instances.list = function(serverName) {
-  return sendServerNameRequest(serverName, {
-    path: '/instances',
-    method: 'GET'
-  });
+  var opts = {};
+  opts.path = '/instances';
+  return sendServerNameRequest(serverName, opts);
 }
 
 g.instances.set = function(serverName, instanceName, buildId, config) {
-
+  var opts = {};
+  opts.method = 'PUT';
+  opts.path = '/instances/'+instanceName;
+  opts.data = {
+    build: buildId,
+    config: config
+  }
+  return sendServerNameRequest(serverName, opts);
 }
 
 g.instances.get = function(serverName, instanceName) {
-
+  var opts = {};
+  opts.path = '/instances/'+instanceName;
+  return sendServerNameRequest(serverName, opts);
 }
 
 g.instances.getConfig = function(serverName, instanceName) {
-
+  var opts = {};
+  opts.path = '/instances/'+instanceName+'/config';
+  return sendServerNameRequest(serverName, opts);
 }
 
 g.instances.setConfig = function(serverName, instanceName, config) {
-
+  var opts = {};
+  opts.method = 'PUT';
+  opts.path = '/instances/'+instanceName;
+  opts.data = { config: config };
+  return sendServerNameRequest(serverName, opts);
 }
 
 g.instances.setBuild = function(serverName, instanceName, buildId) {
-
+  var opts = {};
+  opts.method = 'PUT';
+  opts.path = '/instances/'+instanceName;
+  opts.data = { build: buildId };
+  return sendServerNameRequest(serverName, opts);
 }
+
 g.instances.destroy = function(serverName, instanceName) {
-  var destroy = _.defer();
-  _.db.getServer(serverName).then(function(server) {
-    var opts = {};
-    opts.method = 'DELETE';
-    opts.path = '/instances/'+instanceName;
-    opts.key = server.key;
-    opts.cert = server.cert;
-    opts.hostname = server.host;
-    makeRequest(opts).then(destroy.resolve, destroy.reject);
-  }, destroy.reject);
-  return destroy.promise;
+  var opts = {};
+  opts.method = 'DELETE';
+  opts.path = '/instances/'+instanceName;
+  return sendServerNameRequest(serverName, opts);
 }
