@@ -3,6 +3,8 @@ var express = require('express');
 var _ = require('./util');
 var app = express();
 
+var builder = require('./server-builder');
+
 var db = require('./server-db');
 
 app.configure(function(){
@@ -31,6 +33,7 @@ app.post('/builds', function(req, res) {
   var d = req.body;
   db.builds.add('starting', d.repoUrl, d.deployKey, d.refspec).then(function(build) {
     res.send(build);
+    builder.build(build);
   }, errorCallback(res));
 });
 
