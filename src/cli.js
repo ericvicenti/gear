@@ -67,6 +67,17 @@ client.start().then(function() {
               return cliResponse(client.servers.rename(serverName, newName));
             case 'remove':
               return cliResponse(client.servers.remove(serverName));
+            case 'create':
+              var type = args.shift();
+              if(!type) throw new Error('Must specify what to add to this server');
+              switch (type) {
+                case 'build':
+                  var appName = args.shift();
+                  var refspec = args.shift();
+                  return cliResponse(client.builds.create(serverName, appName, refspec));
+                default:
+                  throw new Error('Cannot add "'+type+'" to this server');
+              }
             case 'builds':
             case 'build':
               var id = args.shift();

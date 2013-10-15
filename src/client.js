@@ -12,7 +12,7 @@ function makeRequest(opts) {
   var path = opts.path || '/';
   opts = {
     uri: 'https://test.hkr.io:8888' + path,
-    body: opts.data ? JSON.stringify(opts.data) : opts.data,
+    json: opts.data,
     method: opts.method || 'GET',
     key: opts.key || httpsKey,
     cert: opts.cert || httpsCert,
@@ -102,14 +102,14 @@ g.builds.list = function(serverName) {
   return sendServerNameRequest(serverName, opts);
 }
 
-g.builds.create = function(serverName, appName, refSpec) {
+g.builds.create = function(serverName, appName, refspec) {
   var create = _.defer();
   db.apps.get(appName).then(function(app) {
     var opts = {};
     opts.method = 'POST';
     opts.path = '/builds';
     opts.data = {
-      refSpec: refSpec,
+      refspec: refspec,
       repoUrl: app.repoUrl,
       deployKey: app.deployKey
     }

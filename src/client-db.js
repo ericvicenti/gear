@@ -46,7 +46,7 @@ db.apps.add = function(name, repoUrl, deployKey) {
 
 db.apps.get = function(name) {
   var get = _.defer();
-  _db.get("SELECT * FROM apps WHERE name = ?", {
+  _db.get("SELECT * FROM apps WHERE name LIKE ?", {
     1: name
   }, function(err, item) {
     if(err) return get.reject(err);
@@ -57,7 +57,7 @@ db.apps.get = function(name) {
 
 db.apps.rename = function(name, newName) {
   var rename = _.defer();
-  _db.run("UPDATE apps SET name = ? WHERE name = ?", {
+  _db.run("UPDATE apps SET name = ? WHERE name LIKE ?", {
     1: newName,
     2: name
   }, function(err) {
@@ -69,7 +69,7 @@ db.apps.rename = function(name, newName) {
 
 db.apps.remove = function(name) {
   var remove = _.defer();
-  _db.run("DELETE FROM apps WHERE name = ?", {
+  _db.run("DELETE FROM apps WHERE name LIKE ?", {
     1: name
   }, function(err) {
     if(err) return remove.reject(err);
@@ -105,7 +105,7 @@ db.servers.add = function(name, host, key, cert) {
 
 db.servers.get = function(name) {
   var get = _.defer();
-  _db.get("SELECT * FROM servers WHERE name = ?", {
+  _db.get("SELECT * FROM servers WHERE name LIKE ?", {
     1: name
   }, function(err, item) {
     if(err) return get.reject(err);
@@ -116,7 +116,7 @@ db.servers.get = function(name) {
 
 db.servers.rename = function(name, newName) {
   var rename = _.defer();
-  _db.run("UPDATE servers SET name = ? WHERE name = ?", {
+  _db.run("UPDATE servers SET name = ? WHERE name LIKE ?", {
     1: newName,
     2: name
   }, function(err) {
@@ -128,7 +128,7 @@ db.servers.rename = function(name, newName) {
 
 db.servers.remove = function(name) {
   var remove = _.defer();
-  _db.run("DELETE FROM servers WHERE name = ?", {
+  _db.run("DELETE FROM servers WHERE name LIKE ?", {
     1: name
   }, function(err) {
     if(err) return remove.reject(err);

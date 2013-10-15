@@ -33,11 +33,12 @@ db.builds.list = function() {
 
 db.builds.add = function(status, repoUrl, deployKey, refspec) {
   var add = _.defer();
-  _db.run("INSERT INTO builds (status, repoUrl, deployKey, refspec) VALUES (?, ?, ?, ?)", {
-    1: status,
-    2: repoUrl,
-    3: deployKey,
-    4: refspec
+  _db.run("INSERT INTO builds (id, status, repoUrl, deployKey, refspec) VALUES (?, ?, ?, ?)", {
+    1: null,
+    2: status,
+    3: repoUrl,
+    4: deployKey,
+    5: refspec
   }, function(err) {
     if(err) return add.reject(err);
     else return add.resolve();
@@ -47,7 +48,7 @@ db.builds.add = function(status, repoUrl, deployKey, refspec) {
 
 db.builds.get = function(id) {
   var get = _.defer();
-  _db.get("SELECT * FROM builds WHERE id = ?", {
+  _db.get("SELECT * FROM builds WHERE id LIKE ?", {
     1: id
   }, function(err, item) {
     if(err) return get.reject(err);
@@ -58,7 +59,7 @@ db.builds.get = function(id) {
 
 db.builds.remove = function(id) {
   var remove = _.defer();
-  _db.run("DELETE FROM builds WHERE id = ?", {
+  _db.run("DELETE FROM builds WHERE id LIKE ?", {
     1: id
   }, function(err) {
     if(err) return remove.reject(err);
@@ -78,22 +79,26 @@ db.instances.list = function() {
   return list.promise;
 }
 
-db.instances.set = function(name, build, config) {
-  config = JSON.stringify(config);
+db.instances.set = function(name, build) {
   var add = _.defer();
-  _db.run("REPLACE INTO instances (name, build) VALUES (?, ?)", {
-    1: name,
-    2: build
+  _db.run("INSERT OR IGNORE INTO instances (name) VALUES (?)", {
+    1: name
   }, function(err) {
     if(err) return add.reject(err);
-    else return add.resolve();
-  })
+    _db.run("UPDATE instances SET build = ? WHERE name LIKE ? ", {
+      1: build,
+      2: name
+    }, function(err) {
+      if(err) return add.reject(err);
+      else return add.resolve();
+    });
+  });
   return add.promise;
 }
 
 db.instances.get = function(name) {
   var get = _.defer();
-  _db.get("SELECT * FROM instances WHERE name = ?", {
+  _db.get("SELECT * FROM instances WHERE name LIKE ?", {
     1: name
   }, function(err, item) {
     if(err) return get.reject(err);
@@ -104,7 +109,7 @@ db.instances.get = function(name) {
 
 db.instances.remove = function(name) {
   var remove = _.defer();
-  _db.run("DELETE FROM instances WHERE name = ?", {
+  _db.run("DELETE FROM instances WHERE name LIKE ?", {
     1: name
   }, function(err) {
     if(err) return remove.reject(err);
