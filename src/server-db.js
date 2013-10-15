@@ -40,7 +40,13 @@ db.builds.add = function(status, repoUrl, deployKey, refspec) {
     4: refspec
   }, function(err) {
     if(err) return add.reject(err);
-    else return add.resolve();
+    else return add.resolve({
+      id: this.lastID,
+      status: status,
+      repoUrl: repoUrl,
+      deployKey: deployKey,
+      refspec: refspec
+    });
   })
   return add.promise;
 }

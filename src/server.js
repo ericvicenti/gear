@@ -30,8 +30,7 @@ app.get('/', function(req, res) {
 app.post('/builds', function(req, res) {
   var d = req.body;
   db.builds.add('starting', d.repoUrl, d.deployKey, d.refspec).then(function(build) {
-    console.log('build created', build)
-    res.send('alrighty')
+    res.send(build);
   }, errorCallback(res));
 });
 
