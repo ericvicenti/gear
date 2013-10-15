@@ -62,8 +62,10 @@ builder.build = function(b) {
   var host = userHost.split('@')[1];
   writeKeyfile(deployKeyFile, b.deployKey).then(function() {
     configureSsh(hostName, host, userName, deployKeyFile).then(function() {
-      checkoutRepo(buildName, hostName+':'+repoPath)
-      build.resolve();
+      checkoutRepo(buildName, hostName+':'+repoPath).then(function() {
+        console.log('build done!!');
+        build.resolve();
+      }, build.reject);
     }, build.reject);
   }, build.reject);
   // b.id
