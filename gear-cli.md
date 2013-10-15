@@ -63,11 +63,11 @@ Eg. `gear app cms remove` -> `OK`
 
 ### Create Build
 
-`gear server $SERVER_NAME builds create $APP_NAME $REF_SPEC`
+`gear server $SERVER_NAME create build $APP_NAME $REF_SPEC`
 
 Create a new build.
 
-Eg. `gear server dev builds create ccc social` -> `{id: 123}`
+Eg. `gear server dev create build ccc social` -> `{id: 123}`
 
 ### Get Build
 
@@ -76,6 +76,10 @@ Eg. `gear server dev builds create ccc social` -> `{id: 123}`
 Eg. `gear server dev build 123` -> `{id: 123, status: 'building', etc..}`
 
 ## Instances
+
+### Get Instances
+
+`gear server $SERVER_NAME instances`
 
 ### Set (Create or Reconfigure) Instance
 

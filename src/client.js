@@ -98,7 +98,7 @@ g.builds = {};
 
 g.builds.list = function(serverName) {
   return sendServerNameRequest(serverName, {
-    path: '/builds/',
+    path: '/builds',
     method: 'GET'
   });
 }
@@ -124,6 +124,13 @@ g.builds.remove = function(buildId) {
 }
 
 g.instances = {};
+
+g.instances.list = function(serverName) {
+  return sendServerNameRequest(serverName, {
+    path: '/instances',
+    method: 'GET'
+  });
+}
 
 g.instances.set = function(serverName, instanceName, buildId, config) {
 

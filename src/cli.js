@@ -68,7 +68,11 @@ client.start().then(function() {
             case 'remove':
               return cliResponse(client.servers.remove(serverName));
             case 'builds':
+            case 'build':
               return cliResponse(client.builds.list(serverName));
+            case 'instances':
+            case 'instance':
+              return cliResponse(client.instances.list(serverName));
             default:
               throw new Error('Cannot run "'+command+'" on a server');
           }
