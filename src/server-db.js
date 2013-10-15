@@ -10,9 +10,9 @@ var db = module.exports = {};
 
 db.start = function() {
   var start = _.defer();
-  _db.run("CREATE TABLE IF NOT EXISTS builds ( id INT PRIMARY KEY, status TEXT, repoUrl TEXT, deployKey TEXT, refspec TEXT )", function(err) {
+  _db.run("CREATE TABLE IF NOT EXISTS builds ( id INTEGER PRIMARY KEY AUTOINCREMENT, status TEXT, repoUrl TEXT, deployKey TEXT, refspec TEXT )", function(err) {
     if(err) return start.reject(err);
-    _db.run("CREATE TABLE IF NOT EXISTS instances ( name TEXT PRIMARY KEY, build INT, FOREIGN KEY(build) REFERENCES builds(id) )", function(err) {
+    _db.run("CREATE TABLE IF NOT EXISTS instances ( name TEXT PRIMARY KEY, build INTEGER, FOREIGN KEY(build) REFERENCES builds(id) )", function(err) {
       if(err) return start.reject(err);
       start.resolve();
     });
