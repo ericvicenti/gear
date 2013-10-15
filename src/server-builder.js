@@ -36,6 +36,7 @@ function writeKeyfile(deployKeyFile, deployKey) {
         if(err) write.reject(err);
         else write.resolve();
       });
+    }
   });
   return write.promise;
 }
