@@ -40,10 +40,16 @@ var httpsOpts = {
   rejectUnauthorized: true
 };
 
-_.https.createServer(httpsOpts, app).listen(8888, function(err) {
+db.start().then(function(){
 
-  if(err) return console.log('Error! ', err);
+  _.https.createServer(httpsOpts, app).listen(8888, function(err) {
 
-  console.log('Server started on 8888');
+    if(err) return console.log('Error! ', err);
 
+    console.log('Server started on 8888');
+
+  });
+
+}, function(err){
+  console.log('Error starting db:', err);
 });
