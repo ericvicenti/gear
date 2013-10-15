@@ -47,7 +47,13 @@ function checkoutRepo(name, repo) {
   console.log('running '+command+' at '+buildDir);
   _.exec(command, {
     cwd: buildDir
-  }).then(checkout.resolve, checkout.reject);
+  }).then(function(a, b, c) {
+    console.log('CHECKOUT DONE ', a, b, c);
+    checkout.resolve(a, b, c);
+  }, function(err) {
+    console.log('CHECKOUT ERROR ', err);
+    checkout.reject(err);
+  });
   return checkout.promise;
 }
 
@@ -62,13 +68,14 @@ builder.build = function(b) {
   var host = userHost.split('@')[1];
   writeKeyfile(deployKeyFile, b.deployKey).then(function() {
     configureSsh(hostName, host, userName, deployKeyFile).then(function() {
-      checkoutRepo(buildName, hostName+':'+repoPath).then(function() {
+      checkoutRepo(buildName, hostName+':'+repoPath).then(function(a, b, c) {
+        console.log('output, ', a, b, c)
         console.log('build done!!');
         build.resolve();
       }, build.reject);
     }, build.reject);
   }, build.reject);
-  // b.id
+
   // b.refspec
   // b.status
 
