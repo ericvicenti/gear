@@ -29,7 +29,7 @@ function configureSsh(hostName, host, userName, identityFile) {
 
 function writeKeyfile(deployKeyFile, deployKey) {
   var write = _.defer();
-  _.fs.writeFile(deployKeyFile, {encoding: 'utf8'}, function(err) {
+  _.fs.writeFile(deployKeyFile, deployKey, {encoding: 'utf8'}, function(err) {
     if(err) write.reject(err);
     else {
       _.fs.chmod(deployKeyFile, '600', function(err) {
