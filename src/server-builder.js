@@ -19,7 +19,7 @@ function configureSsh(hostName, host, userName, identityFile) {
 
   _.fs.readFile(sshConfig, {encoding: 'utf8'}, function(err, existingConfig) {
     if(err) configure.reject(err);
-    else _.fs.writeFile(sshConfig, {encoding: 'utf8'}, newConfig + existingConfig, function(err) {
+    else _.fs.writeFile(sshConfig, newConfig + existingConfig, {encoding: 'utf8'}, function(err) {
       if(err) configure.reject(err);
       else configure.resolve();
     });
