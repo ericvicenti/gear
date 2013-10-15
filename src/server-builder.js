@@ -31,13 +31,28 @@ function writeKeyfile(deployKeyFile, deployKey) {
   var write = _.defer();
   _.fs.writeFile(deployKeyFile, {encoding: 'utf8'}, function(err) {
     if(err) write.reject(err);
-    else write.resolve();
+    else {
+      fs.chmod(deployKeyFile, '700', function(err) {
+        if(err) write.reject(err);
+        else write.resolve();
+      });
   });
   return write.promise;
 }
 
+function checkoutRepo(name, repo) {
+  var checkout = _.defer();
+  var command = 'git clone '+repo+' '+name;
+  console.log('running '+command+' at '+buildDir);
+  _.exec(command, {
+    cwd: buildDir
+  }).then(checkout.resolve, checkout.reject);
+  return checkout.promise;
+}
+
 builder.build = function(b) {
   var build = _.defer();
+  var buildName = 'build-'+b.id;
   var hostName = 'gear-host-'+b.id;
   var deployKeyFile = _.path.join(buildDir, 'deployKey-'+b.id);
   var userHost = b.repoUrl.split(':')[0];
@@ -46,6 +61,7 @@ builder.build = function(b) {
   var host = userHost.split('@')[1];
   writeKeyfile(deployKeyFile, b.deployKey).then(function() {
     configureSsh(hostName, host, userName, deployKeyFile).then(function() {
+      checkoutRepo(buildName, hostName+':'+repoPath)
       build.resolve();
     }, build.reject);
   }, build.reject);
