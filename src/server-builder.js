@@ -32,7 +32,7 @@ function writeKeyfile(deployKeyFile, deployKey) {
   _.fs.writeFile(deployKeyFile, {encoding: 'utf8'}, function(err) {
     if(err) write.reject(err);
     else {
-      _.fs.chmod(deployKeyFile, '700', function(err) {
+      _.fs.chmod(deployKeyFile, '600', function(err) {
         if(err) write.reject(err);
         else write.resolve();
       });
