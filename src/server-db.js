@@ -33,12 +33,11 @@ db.builds.list = function() {
 
 db.builds.add = function(status, repoUrl, deployKey, refspec) {
   var add = _.defer();
-  _db.run("INSERT INTO builds (id, status, repoUrl, deployKey, refspec) VALUES (?, ?, ?, ?)", {
-    1: null,
-    2: status,
-    3: repoUrl,
-    4: deployKey,
-    5: refspec
+  _db.run("INSERT INTO builds (status, repoUrl, deployKey, refspec) VALUES (?, ?, ?)", {
+    1: status,
+    2: repoUrl,
+    3: deployKey,
+    4: refspec
   }, function(err) {
     if(err) return add.reject(err);
     else return add.resolve();
