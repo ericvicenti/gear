@@ -1,5 +1,7 @@
 var _ = module.exports = require('underscore');
 
+var child_process = require('child_process');
+
 _.path = require('path');
 _.https = require('https');
 _.request = require('request');
