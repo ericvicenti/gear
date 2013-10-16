@@ -44,14 +44,11 @@ function writeKeyfile(deployKeyFile, deployKey) {
 function checkoutRepo(name, repo) {
   var checkout = _.defer();
   var command = 'git clone '+repo+' '+name;
-  console.log('running '+command+' at '+buildDir);
   _.exec(command, {
     cwd: buildDir
-  }).then(function(a, b, c) {
-    console.log('CHECKOUT DONE ', a, b, c);
-    checkout.resolve(a, b, c);
+  }).then(function(stdout, stderr) {
+    checkout.resolve(stdout, stderr);
   }, function(err) {
-    console.log('CHECKOUT ERROR ', err);
     checkout.reject(err);
   });
   return checkout.promise;
@@ -61,19 +58,57 @@ function checkoutRefspec(name, refspec) {
   var gitDir = _.path.join(buildDir, name);
   var checkout = _.defer();
   var command = 'git checkout '+refspec;
-  console.log('running '+command+' at '+gitDir);
   _.exec(command, {
     cwd: gitDir
-  }).then(function(a, b, c) {
-    console.log('CHECKOUT DONE ', a, b, c);
-    checkout.resolve(a, b, c);
+  }).then(function(stdout, stderr) {
+    checkout.resolve(stdout, stderr);
   }, function(err) {
-    console.log('CHECKOUT ERROR ', err);
     checkout.reject(err);
   });
   return checkout.promise;
 }
 
+function npmInstall(name) {
+  var install = _.defer();
+  var gitDir = _.path.join(buildDir, name);
+  var command = '/nvm/v0.10.18/bin/npm install';
+  _.exec(command, {
+    cwd: gitDir
+  }).then(function(stdout, stderr) {
+    install.resolve(stdout, stderr);
+  }, function(err) {
+    install.reject(err);
+  });
+  return install.promise;
+}
+
+function bowerInstall(name) {
+  var install = _.defer();
+  var gitDir = _.path.join(buildDir, name);
+  var command = 'bower install --allow-root';
+  _.exec(command, {
+    cwd: gitDir
+  }).then(function(stdout, stderr) {
+    install.resolve(stdout, stderr);
+  }, function(err) {
+    install.reject(err);
+  });
+  return install.promise;
+}
+
+function gruntBuild(name) {
+  var build = _.defer();
+  var gitDir = _.path.join(buildDir, name);
+  var command = 'grunt build';
+  _.exec(command, {
+    cwd: gitDir
+  }).then(function(stdout, stderr) {
+    build.resolve(stdout, stderr);
+  }, function(err) {
+    build.reject(err);
+  });
+  return build.promise;
+}
 
 builder.build = function(b) {
   var build = _.defer();
@@ -82,7 +117,13 @@ builder.build = function(b) {
   var deployKeyFile = _.path.join(buildDir, 'deployKey-'+b.id);
   function _continueBuild() {
     checkoutRefspec(b.buildName, b.refspec).then(function() {
-      build.resolve(b);
+      npmInstall(b.buildName).then(function() {
+        bowerInstall(b.buildName).then(function() {
+          gruntBuild(b.buildName).then(function() {
+            build.resolve(b);
+          }, build.reject);
+        }, build.reject);
+      }, build.reject);
     }, build.reject);
   }
   if (_.str.include(b.repoUrl, 'https://')) {
