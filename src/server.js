@@ -46,8 +46,7 @@ app.post('/builds', function(req, res) {
         console.log('error saving status');
       });
     });
-  }, errorCallback(res));, function(status, msg) {
-  });
+  }, errorCallback(res));
 });
 
 app.get('/builds/:id', function(req, res) {
