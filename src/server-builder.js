@@ -58,22 +58,36 @@ function checkoutRepo(name, repo) {
 }
 
 function checkoutRefspec(name, refspec) {
+  var gitDir = _.path.join(buildDir, name);
   var checkout = _.defer();
-
+  var command = 'git checkout '+refspec;
+  console.log('running '+command+' at '+gitDir);
+  _.exec(command, {
+    cwd: gitDir
+  }).then(function(a, b, c) {
+    console.log('CHECKOUT DONE ', a, b, c);
+    checkout.resolve(a, b, c);
+  }, function(err) {
+    console.log('CHECKOUT ERROR ', err);
+    checkout.reject(err);
+  });
   return checkout.promise;
 }
 
+
 builder.build = function(b) {
   var build = _.defer();
-  var buildName = 'build-'+b.id;
-  var hostName = 'gear-host-'+b.id;
+  b.buildName = 'build-'+b.id;
+  b.hostName = 'gear-host-'+b.id;
   var deployKeyFile = _.path.join(buildDir, 'deployKey-'+b.id);
+  function _continueBuild() {
+  // b.refspec
+  }
   if (_.str.include(b.repoUrl, 'https://')) {
     // it look like a repo hosted over https
     // time to forget about that tricky deployKey and user and ssh etc.
-    checkoutRepo(buildName, b.repoUrl).then(function(a, b, c) {
-      console.log('https checkout output, ', a, b, c);
-      build.resolve();
+    checkoutRepo(b.buildName, b.repoUrl).then(function(a, b, c) {
+      _continueBuild();
     }, build.reject);
 
   } else if (_.str.include(b.repoUrl, '@') && _.str.include(b.repoUrl, ':')) {
@@ -86,15 +100,12 @@ builder.build = function(b) {
     writeKeyfile(deployKeyFile, b.deployKey).then(function() {
       configureSsh(hostName, host, userName, deployKeyFile).then(function() {
         checkoutRepo(buildName, hostName+':'+repoPath).then(function(a, b, c) {
-          console.log('output, ', a, b, c)
-          console.log('build done!!');
-          build.resolve();
+          _continueBuild(build, b);
         }, build.reject);
       }, build.reject);
     }, build.reject);
 
   } else build.reject(new Error('Invalid repo URL!'));
-  // b.refspec
 
   return build.promise;
 }
