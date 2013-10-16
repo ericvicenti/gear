@@ -4,6 +4,7 @@ var _ = require('./util');
 var app = express();
 
 var builder = require('./server-builder');
+var instances = require('./server-instances');
 
 var db = require('./server-db');
 
@@ -26,7 +27,7 @@ function sendResponse(res, promise) {
 
 
 app.get('/', function(req, res) {
-  res.send('hello world');
+  res.send([ 'builds', 'instances' ]);
 });
 
 app.post('/builds', function(req, res) {
@@ -41,13 +42,12 @@ app.post('/builds', function(req, res) {
     buildId = build.id;
     res.send(build);
     builder.build(build).then(function() {
-      console.log('PROMISE RESOLVED');
       hasPassHappened = true;
       function reportPass() {
         db.builds.setStatus(buildId, 'passed', 'Build Passed').then(function() {
-          console.log('saved success status');
+          console.log('Build '+build.id+' Done.');
         }, function() {
-          console.log('error saving success status');
+          console.log('Build '+build.id+' Done. Error saving success status');
         });
       }
       if (isNotifying) afterNotify = reportPass;
@@ -55,19 +55,17 @@ app.post('/builds', function(req, res) {
     }, function(err) {
       err = '' + err;
       if(lastNotification) err = lastNotification + ' - ' + err;
-      console.log('PROMISE REJECT ', err);
       hasErrorHappened = true;
       function reportFailure() {
         db.builds.setStatus(buildId, 'failed', err).then(function() {
-          console.log('saved err status ', err);
+          console.log('Build '+build.id+' failed with error: ', err);
         }, function() {
-          console.log('error saving err status');
+          console.log('Build '+build.id+' failed and could not save error status: ', err);
         });
       }
       if (isNotifying) afterNotify = reportFailure;
       else reportFailure();
     }, function(status) {
-      console.log('PROMISE NOTIFY ', status);
       if(!hasErrorHappened && !hasPassHappened) {      
         isNotifying = true;
         lastNotification = status.message;
@@ -75,12 +73,10 @@ app.post('/builds', function(req, res) {
           isNotifying = false;
           if(afterNotify) afterNotify();
           afterNotify = false;
-          console.log('saved status ', status.message);
         }, function() {
           isNotifying = false;
           if(afterNotify) afterNotify();
           afterNotify = false;
-          console.log('error saving status');
         });
       }
     });
@@ -93,6 +89,21 @@ app.get('/builds/:id', function(req, res) {
 
 app.del('/builds/:id', function(req, res) {
   sendResponse(res, db.builds.remove(req.params.id));
+  db.builds.get(req.params.id).then(function(build) {
+    if(build) {
+      builder.remove(req.params.id).then(function() {
+        db.builds.remove(req.params.id).then(function() {
+          res.send(200, 'Build '+req.params.id+' removed');
+        }, function(err) {
+          res.send(500, 'Error removing build from db: ', err);
+        });
+      }, function(err) {
+        res.send(500, 'Error removing build:', err);
+      });
+    } else return res.send(404, 'Could not find build '+req.params.id);
+  }, function(err) {
+    res.send(404, 'Could not find build '+req.params.id);
+  });
 });
 
 app.get('/builds', function(req, res) {
@@ -102,6 +113,29 @@ app.get('/builds', function(req, res) {
 app.get('/instances', function(req, res) {
   sendResponse(res, db.instances.list());
 });
+
+app.get('/instances/:name', function(req, res) {
+  sendResponse(res, db.instances.get(req.params.name));
+});
+
+app.del('/instances/:name', function(req, res) {
+  db.instances.get(req.params.name).then(function(instance) {
+    if(instance) {
+      instances.remove(req.params.name).then(function() {
+        db.instances.remove(req.params.name).then(function() {
+          res.send(200, 'Instance '+req.params.name+' removed');
+        }, function(err) {
+          res.send(500, 'Error removing instance from db: ', err);
+        });
+      }, function(err) {
+        res.send(500, 'Error removing instance:', err);
+      });
+    } else return res.send(404, 'Could not find instance '+req.params.name);
+  }, function(err) {
+    res.send(404, 'Error retrieving instance '+req.params.name);
+  });
+});
+
 
 var httpsKey = _.fs.readFileSync('/root/server.key');
 var httpsCert = _.fs.readFileSync('/root/server.crt');
