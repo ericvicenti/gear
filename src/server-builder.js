@@ -81,7 +81,9 @@ builder.build = function(b) {
   b.hostName = 'gear-host-'+b.id;
   var deployKeyFile = _.path.join(buildDir, 'deployKey-'+b.id);
   function _continueBuild() {
-  // b.refspec
+    checkoutRefspec(b.buildName, b.refspec).then(function() {
+      build.resolve(b);
+    }, build.reject);
   }
   if (_.str.include(b.repoUrl, 'https://')) {
     // it look like a repo hosted over https
@@ -100,7 +102,7 @@ builder.build = function(b) {
     writeKeyfile(deployKeyFile, b.deployKey).then(function() {
       configureSsh(hostName, host, userName, deployKeyFile).then(function() {
         checkoutRepo(buildName, hostName+':'+repoPath).then(function(a, b, c) {
-          _continueBuild(build, b);
+          _continueBuild();
         }, build.reject);
       }, build.reject);
     }, build.reject);
