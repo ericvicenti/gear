@@ -43,7 +43,7 @@ app.post('/builds', function(req, res) {
       console.log('PROMISE RESOLVED');
       hasPassHappened = true;
       function reportPass() {
-        db.builds.setStatus('passed', 'Build Passed').then(function() {
+        db.builds.setStatus(buildId, 'passed', 'Build Passed').then(function() {
           console.log('saved success status');
         }, function() {
           console.log('error saving success status');
@@ -55,8 +55,8 @@ app.post('/builds', function(req, res) {
       err = '' + err;
       console.log('PROMISE REJECT ', err);
       hasErrorHappened = true;
-      function reportFailure() {      
-        db.builds.setStatus('failed', err).then(function() {
+      function reportFailure() {
+        db.builds.setStatus(buildId, 'failed', err).then(function() {
           console.log('saved err status ', err);
         }, function() {
           console.log('error saving err status');
