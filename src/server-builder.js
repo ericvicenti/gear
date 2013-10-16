@@ -57,6 +57,12 @@ function checkoutRepo(name, repo) {
   return checkout.promise;
 }
 
+function checkoutRefspec(name, refspec) {
+  var checkout = _.defer();
+
+  return checkout.promise;
+}
+
 builder.build = function(b) {
   var build = _.defer();
   var buildName = 'build-'+b.id;
