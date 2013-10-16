@@ -85,7 +85,7 @@ function npmInstall(name) {
 function bowerInstall(name) {
   var install = _.defer();
   var gitDir = _.path.join(buildDir, name);
-  var command = 'bower install --allow-root';
+  var command = '/nvm/v0.10.18/bin/bower install --allow-root';
   _.exec(command, {
     cwd: gitDir
   }).then(function(stdout, stderr) {
@@ -99,7 +99,7 @@ function bowerInstall(name) {
 function gruntBuild(name) {
   var build = _.defer();
   var gitDir = _.path.join(buildDir, name);
-  var command = 'grunt build';
+  var command = '/nvm/v0.10.18/bin/grunt build';
   _.exec(command, {
     cwd: gitDir
   }).then(function(stdout, stderr) {
