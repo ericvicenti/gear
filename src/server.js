@@ -88,7 +88,6 @@ app.get('/builds/:id', function(req, res) {
 });
 
 app.del('/builds/:id', function(req, res) {
-  sendResponse(res, db.builds.remove(req.params.id));
   db.builds.get(req.params.id).then(function(build) {
     if(build) {
       builder.remove(req.params.id).then(function() {
