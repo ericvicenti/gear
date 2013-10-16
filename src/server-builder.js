@@ -131,20 +131,33 @@ function packageBuild(name) {
 function cleanBuild(name) {
   var clean = _.defer();
   var gitDir = _.path.join(buildDir, name);
-  _.fs.rmdir(gitDir, function(err) {
-    if (err) clean.reject(err);
-    else clean.resolve();
+  var command = 'rm -rf '+gitDir;
+  _.exec(command, {
+  }).then(function(stdout, stderr) {
+    clean.resolve();
+  }, function(err) {
+    clean.reject(err);
   });
   return clean.promise;
 }
 
-function removePackage(name) {
+function removeBuildPackage(name) {
   var remove = _.defer();
   var tarPath = '/root/builds/'+name+'.tar';
   _.fs.unlink(tarPath, function(err) {
-    if (err) remove.reject(err);
+    if (err) remove.resolve(); // pretend to succeed. most common error is the tar doesnt exist
     else remove.resolve();
   });
+  return remove.promise;
+}
+
+function removeBuild(name) {
+  var remove = _.defer();
+  removeBuildPackage(name).then(function() {
+    cleanBuild(name).then(function() {
+      remove.resolve();
+    }, remove.reject);
+  }, remove.reject);
   return remove.promise;
 }
 
@@ -153,55 +166,69 @@ builder.build = function(b) {
   b.buildName = 'build-'+b.id;
   b.hostName = 'gear-host-'+b.id;
   var deployKeyFile = _.path.join(buildDir, 'deployKey-'+b.id);
+  function rejectBuild(err) {
+    build.reject.apply(this, arguments);
+  }
+  function notifyBuild(message) {
+    build.notify('building', message);
+  }
   function _continueBuild() {
+    notifyBuild('Checking out refspec "'+b.refspec+'"');
     checkoutRefspec(b.buildName, b.refspec).then(function() {
+      notifyBuild('Running NPM install');
       npmInstall(b.buildName).then(function() {
+        notifyBuild('Running Bower install');
         bowerInstall(b.buildName).then(function() {
+          notifyBuild('Running Grunt Build');
           gruntBuild(b.buildName).then(function() {
+            notifyBuild('Packaging Build');
             packageBuild(b.buildName).then(function() {
+              notifyBuild('Cleaning Build');
               cleanBuild(b.buildName).then(function() {
 /* WOAAH */     build.resolve(b);
-              }, build.reject);
-            }, build.reject);
-          }, build.reject);
-        }, build.reject);
-      }, build.reject);
-    }, build.reject);
+              }, rejectBuild);
+            }, rejectBuild);
+          }, rejectBuild);
+        }, rejectBuild);
+      }, rejectBuild);
+    }, rejectBuild);
   }
-  if (_.str.include(b.repoUrl, 'https://')) {
-    // it look like a repo hosted over https
-    // time to forget about that tricky deployKey and user and ssh etc.
-    checkoutRepo(b.buildName, b.repoUrl).then(function(a, b, c) {
-      _continueBuild();
-    }, build.reject);
 
-  } else if (_.str.include(b.repoUrl, '@') && _.str.include(b.repoUrl, ':')) {
-    // this is probably a ssh connection. @ and : are our delimters.
-    // user@host:path
-    var userHost = b.repoUrl.split(':')[0];
-    var repoPath = b.repoUrl.split(':')[1];
-    var userName = userHost.split('@')[0];
-    var host = userHost.split('@')[1];
-    writeKeyfile(deployKeyFile, b.deployKey).then(function() {
-      configureSsh(hostName, host, userName, deployKeyFile).then(function() {
-        checkoutRepo(buildName, hostName+':'+repoPath).then(function(a, b, c) {
-          _continueBuild();
-        }, build.reject);
-      }, build.reject);
-    }, build.reject);
+  notifyBuild('Preparing for build');
+  removeBuild(b.buildName).then(function() { // clean the build before starting
+    if (_.str.include(b.repoUrl, 'https://')) {
+      // it look like a repo hosted over https
+      // time to forget about that tricky deployKey and user and ssh etc.
+      notifyBuild('Checking out repo '+b.repoUrl);
+      checkoutRepo(b.buildName, b.repoUrl).then(function(a, b, c) {
+        _continueBuild();
+      }, rejectBuild);
 
-  } else build.reject(new Error('Invalid repo URL!'));
+    } else if (_.str.include(b.repoUrl, '@') && _.str.include(b.repoUrl, ':')) {
+      // this is probably a ssh connection. @ and : are our delimters.
+      // user@host:path
+      var userHost = b.repoUrl.split(':')[0];
+      var repoPath = b.repoUrl.split(':')[1];
+      var userName = userHost.split('@')[0];
+      var host = userHost.split('@')[1];
+      notifyBuild('Saving deployKey for '+userName+' on '+host);
+      writeKeyfile(deployKeyFile, b.deployKey).then(function() {
+        notifyBuild('Configuring SSH for '+userName+' on '+host);
+        configureSsh(hostName, host, userName, deployKeyFile).then(function() {
+          notifyBuild('Checking out repo '+repoPath+' on '+host+' as '+userName);
+          checkoutRepo(buildName, hostName+':'+repoPath).then(function(a, b, c) {
+            _continueBuild();
+          }, rejectBuild);
+        }, rejectBuild);
+      }, rejectBuild);
+
+    } else rejectBuild(new Error('Invalid repo URL!'));
+  }, rejectBuild);
 
   return build.promise;
 }
 
 builder.remove = function(buildId) {
-  var remove = _.defer();
   var buildName =  'build-'+buildId;
-  removePackage(buildId).then(function() {
-    cleanBuild(buildId).then(function() {
-      remove.resolve();
-    }, remove.reject);
-  }, remove.reject);
-  return remove.promise;
+  return removeBuild(buildName);
 }

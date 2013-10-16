@@ -31,10 +31,23 @@ app.get('/', function(req, res) {
 
 app.post('/builds', function(req, res) {
   var d = req.body;
-  db.builds.add('starting', d.repoUrl, d.deployKey, d.refspec).then(function(build) {
+  var buildId;
+  db.builds.add('building', 'Starting Build', d.repoUrl, d.deployKey, d.refspec).then(function(build) {
+    buildId = build.id;
     res.send(build);
-    builder.build(build);
-  }, errorCallback(res));
+    builder.build(build).then(function() {
+      console.log('build complete, wohooo');
+    }, function(err) {
+      console.log('build error :-( ', err)
+    }, function(status, statusMsg) {
+      db.builds.setStatus(buildId, status, statusMsg).then(function() {
+        console.log('saved status ', statusMsg);
+      }, function() {
+        console.log('error saving status');
+      });
+    });
+  }, errorCallback(res));, function(status, msg) {
+  });
 });
 
 app.get('/builds/:id', function(req, res) {

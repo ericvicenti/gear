@@ -10,7 +10,7 @@ var db = module.exports = {};
 
 db.start = function() {
   var start = _.defer();
-  _db.run("CREATE TABLE IF NOT EXISTS builds ( id INTEGER PRIMARY KEY AUTOINCREMENT, status TEXT, repoUrl TEXT, deployKey TEXT, refspec TEXT )", function(err) {
+  _db.run("CREATE TABLE IF NOT EXISTS builds ( id INTEGER PRIMARY KEY AUTOINCREMENT, status TEXT, statusMsg TEXT, repoUrl TEXT, deployKey TEXT, refspec TEXT )", function(err) {
     if(err) return start.reject(err);
     _db.run("CREATE TABLE IF NOT EXISTS instances ( name TEXT PRIMARY KEY, build INTEGER, FOREIGN KEY(build) REFERENCES builds(id) )", function(err) {
       if(err) return start.reject(err);
@@ -31,24 +31,39 @@ db.builds.list = function() {
   return list.promise;
 }
 
-db.builds.add = function(status, repoUrl, deployKey, refspec) {
+db.builds.add = function(status, statusMsg, repoUrl, deployKey, refspec) {
   var add = _.defer();
-  _db.run("INSERT INTO builds (status, repoUrl, deployKey, refspec) VALUES (?, ?, ?, ?)", {
+  _db.run("INSERT INTO builds (status, statusMsg, repoUrl, deployKey, refspec) VALUES (?, ?, ?, ?)", {
     1: status,
-    2: repoUrl,
-    3: deployKey,
-    4: refspec
+    2: statusMsg,
+    3: repoUrl,
+    4: deployKey,
+    5: refspec
   }, function(err) {
     if(err) return add.reject(err);
     else return add.resolve({
       id: this.lastID,
       status: status,
+      statusMsg: statusMsg,
       repoUrl: repoUrl,
       deployKey: deployKey,
       refspec: refspec
     });
   })
   return add.promise;
+}
+
+db.builds.setStatus = function(id, status, statusMsg) {
+  var set = _.defer();
+  _db.run("UPDATE builds SET status = ?, statusMsg = ? WHERE id LIKE ?", {
+    1: status,
+    2: statusMsg,
+    3: id
+  }, function(err) {
+    if(err) return set.reject(err);
+    else return set.resolve();
+  });
+  return set.promise;
 }
 
 db.builds.get = function(id) {
