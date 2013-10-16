@@ -31,28 +31,48 @@ app.get('/', function(req, res) {
 
 app.post('/builds', function(req, res) {
   var d = req.body;
+  var hasErrorHappened = false;
+  var hasPassHappened = false;
+  var isNotifying = false;
   var buildId;
   db.builds.add('building', 'Starting Build', d.repoUrl, d.deployKey, d.refspec).then(function(build) {
     buildId = build.id;
     res.send(build);
     builder.build(build).then(function() {
-      db.builds.setStatus('passed', 'Build Passed').then(function() {
-        console.log('saved success status');
-      }, function() {
-        console.log('error saving success status');
+      hasPassHappened = true;
+      function reportPass() {
+        db.builds.setStatus('passed', 'Build Passed').then(function() {
+          console.log('saved success status');
+        }, function() {
+          console.log('error saving success status');
+        });
       });
+      if (isNotifying) afterNotify = reportPass;
+      else reportPass();
     }, function(err) {
-      db.builds.setStatus('failed', err).then(function() {
-        console.log('saved err status ', err);
-      }, function() {
-        console.log('error saving err status');
-      });
+      hasErrorHappened = true;
+      function reportFailure() {      
+        db.builds.setStatus('failed', err).then(function() {
+          console.log('saved err status ', err);
+        }, function() {
+          console.log('error saving err status');
+        });
+      }
+      if (isNotifying) afterNotify = reportFailure;
+      else reportFailure();
     }, function(status) {
-      db.builds.setStatus(buildId, status.status, status.message).then(function() {
-        console.log('saved status ', status.message);
-      }, function() {
-        console.log('error saving status');
-      });
+      isNotifying = true;
+      if(!hasErrorHappened && !hasPassHappened) {      
+        db.builds.setStatus(buildId, status.status, status.message).then(function() {
+          isNotifying = false;
+          if(afterNotify) afterNotify();
+          console.log('saved status ', status.message);
+        }, function() {
+          isNotifying = false;
+          if(afterNotify) afterNotify();
+          console.log('error saving status');
+        });
+      }
     });
   }, errorCallback(res));
 });
