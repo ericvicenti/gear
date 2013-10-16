@@ -52,6 +52,7 @@ app.post('/builds', function(req, res) {
       if (isNotifying) afterNotify = reportPass;
       else reportPass();
     }, function(err) {
+      err = '' + err;
       console.log('PROMISE REJECT ', err);
       hasErrorHappened = true;
       function reportFailure() {      
