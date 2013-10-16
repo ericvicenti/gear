@@ -114,7 +114,7 @@ function packageBuild(name) {
   var pack = _.defer();
   var gitDir = _.path.join(buildDir, name);
   var tarPath = '/root/builds/'+name+'.tar';
-  var command = 'tar -zcvf '+tarPath+' .';
+  var command = 'tar -cf '+tarPath+' .';
   _.exec(command, {
     cwd: gitDir
   }).then(function(stdout, stderr) {
@@ -126,7 +126,7 @@ function packageBuild(name) {
 }
 
 // unpackage:
-// tar -xvf /root/builds/mybuild.tar -C /root/instances/myinstance/
+// tar -xf /root/builds/mybuild.tar -C /root/instances/myinstance/
 
 function cleanBuild(name) {
   var clean = _.defer();
