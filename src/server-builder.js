@@ -170,7 +170,7 @@ builder.build = function(b) {
     build.reject.apply(this, arguments);
   }
   function notifyBuild(message) {
-    build.notify('building', message);
+    build.notify({ status: 'building', message: message });
   }
   function _continueBuild() {
     notifyBuild('Checking out refspec "'+b.refspec+'"');

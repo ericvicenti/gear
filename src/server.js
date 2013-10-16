@@ -36,12 +36,20 @@ app.post('/builds', function(req, res) {
     buildId = build.id;
     res.send(build);
     builder.build(build).then(function() {
-      console.log('build complete, wohooo');
+      db.builds.setStatus('passed', 'Build Passed').then(function() {
+        console.log('saved success status');
+      }, function() {
+        console.log('error saving success status');
+      });
     }, function(err) {
-      console.log('build error :-( ', err)
-    }, function(status, statusMsg) {
-      db.builds.setStatus(buildId, status, statusMsg).then(function() {
-        console.log('saved status ', statusMsg);
+      db.builds.setStatus('failed', err).then(function() {
+        console.log('saved err status ', err);
+      }, function() {
+        console.log('error saving err status');
+      });
+    }, function(status) {
+      db.builds.setStatus(buildId, status.status, status.message).then(function() {
+        console.log('saved status ', status.message);
       }, function() {
         console.log('error saving status');
       });
