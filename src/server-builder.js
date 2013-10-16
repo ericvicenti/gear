@@ -68,22 +68,33 @@ builder.build = function(b) {
   var buildName = 'build-'+b.id;
   var hostName = 'gear-host-'+b.id;
   var deployKeyFile = _.path.join(buildDir, 'deployKey-'+b.id);
-  var userHost = b.repoUrl.split(':')[0];
-  var repoPath = b.repoUrl.split(':')[1];
-  var userName = userHost.split('@')[0];
-  var host = userHost.split('@')[1];
-  writeKeyfile(deployKeyFile, b.deployKey).then(function() {
-    configureSsh(hostName, host, userName, deployKeyFile).then(function() {
-      checkoutRepo(buildName, hostName+':'+repoPath).then(function(a, b, c) {
-        console.log('output, ', a, b, c)
-        console.log('build done!!');
-        build.resolve();
+  if (_.str.include(b.repoUrl, 'https://')) {
+    // it look like a repo hosted over https
+    // time to forget about that tricky deployKey and user and ssh etc.
+    checkoutRepo(buildName, b.repoUrl).then(function(a, b, c) {
+      console.log('https checkout output, ', a, b, c);
+      build.resolve();
+    }, build.reject);
+
+  } else if (_.str.include(b.repoUrl, '@') && _.str.include(b.repoUrl, ':')) {
+    // this is probably a ssh connection. @ and : are our delimters.
+    // user@host:path
+    var userHost = b.repoUrl.split(':')[0];
+    var repoPath = b.repoUrl.split(':')[1];
+    var userName = userHost.split('@')[0];
+    var host = userHost.split('@')[1];
+    writeKeyfile(deployKeyFile, b.deployKey).then(function() {
+      configureSsh(hostName, host, userName, deployKeyFile).then(function() {
+        checkoutRepo(buildName, hostName+':'+repoPath).then(function(a, b, c) {
+          console.log('output, ', a, b, c)
+          console.log('build done!!');
+          build.resolve();
+        }, build.reject);
       }, build.reject);
     }, build.reject);
-  }, build.reject);
 
+  } else build.reject(new Error('Invalid repo URL!'));
   // b.refspec
-  // b.status
 
   return build.promise;
 }

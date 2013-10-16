@@ -44,12 +44,6 @@ g.start = function() {
   return db.start();
 }
 
-g.helloworld = function() {
-  return makeRequest({
-    hostname: 'test.hkr.io'
-  });
-}
-
 g.servers = {};
 
 g.servers.list = function() {
@@ -79,6 +73,7 @@ g.apps.list = function() {
 }
 
 g.apps.add = function(name, repoUrl, deployKey) {
+  console.log('adding with key: '+ deployKey);
   return db.apps.add(name, repoUrl, deployKey);
 }
 

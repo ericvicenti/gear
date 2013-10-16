@@ -9,9 +9,9 @@ var script = args.shift();
 var command = args.shift();
 
 function cliErrorHandler(err) {
-    console.log('ERROR');
-    console.log(err);
-  }
+  console.log('ERROR');
+  console.log(err);
+}
 
 function cliResponse(promise) {
   promise.then(function(a) {
@@ -26,8 +26,6 @@ function cliResponse(promise) {
 client.start().then(function() {
 
   switch (command) {
-    case 'helloworld':
-      return cliResponse(client.helloworld());
     case 'add':
       command = args.shift();
       if(!command) throw new Error('Must specify what to add');
@@ -36,7 +34,8 @@ client.start().then(function() {
           var name = args.shift();
           var repoUrl = args.shift();
           var deployKey = args.shift();
-          deployKey = _.fs.readFileSync(deployKey, {encoding: 'utf8'});
+          if (deployKey && _.fs.existsSync(deployKey))
+            deployKey = _.fs.readFileSync(deployKey, {encoding: 'utf8'});
           return cliResponse(client.apps.add(name, repoUrl, deployKey));
         case 'server':
           var name = args.shift();
