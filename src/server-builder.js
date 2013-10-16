@@ -110,6 +110,44 @@ function gruntBuild(name) {
   return build.promise;
 }
 
+function packageBuild(name) {
+  var pack = _.defer();
+  var gitDir = _.path.join(buildDir, name);
+  var tarPath = '/root/builds/'+name+'.tar';
+  var command = 'tar -zcvf '+tarPath+' .';
+  _.exec(command, {
+    cwd: gitDir
+  }).then(function(stdout, stderr) {
+    pack.resolve(stdout, stderr);
+  }, function(err) {
+    pack.reject(err);
+  });
+  return pack.promise;
+}
+
+// unpackage:
+// tar -xvf /root/builds/mybuild.tar -C /root/instances/myinstance/
+
+function cleanBuild(name) {
+  var clean = _.defer();
+  var gitDir = _.path.join(buildDir, name);
+  _.fs.rmdir(gitDir, function(err) {
+    if (err) clean.reject(err);
+    else clean.resolve();
+  });
+  return clean.promise;
+}
+
+function removePackage(name) {
+  var remove = _.defer();
+  var tarPath = '/root/builds/'+name+'.tar';
+  _.fs.unlink(tarPath, function(err) {
+    if (err) remove.reject(err);
+    else remove.resolve();
+  });
+  return remove.promise;
+}
+
 builder.build = function(b) {
   var build = _.defer();
   b.buildName = 'build-'+b.id;
@@ -120,7 +158,11 @@ builder.build = function(b) {
       npmInstall(b.buildName).then(function() {
         bowerInstall(b.buildName).then(function() {
           gruntBuild(b.buildName).then(function() {
-            build.resolve(b);
+            packageBuild(b.buildName).then(function() {
+              cleanBuild(b.buildName).then(function() {
+/* WOAAH */     build.resolve(b);
+              }, build.reject);
+            }, build.reject);
           }, build.reject);
         }, build.reject);
       }, build.reject);
@@ -151,4 +193,15 @@ builder.build = function(b) {
   } else build.reject(new Error('Invalid repo URL!'));
 
   return build.promise;
+}
+
+builder.remove = function(buildId) {
+  var remove = _.defer();
+  var buildName =  'build-'+buildId;
+  removePackage(buildId).then(function() {
+    cleanBuild(buildId).then(function() {
+      remove.resolve();
+    }, remove.reject);
+  }, remove.reject);
+  return remove.promise;
 }
