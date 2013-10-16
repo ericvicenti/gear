@@ -46,7 +46,7 @@ app.post('/builds', function(req, res) {
         }, function() {
           console.log('error saving success status');
         });
-      });
+      }
       if (isNotifying) afterNotify = reportPass;
       else reportPass();
     }, function(err) {
@@ -70,6 +70,7 @@ app.post('/builds', function(req, res) {
         }, function() {
           isNotifying = false;
           if(afterNotify) afterNotify();
+          afterNotify = false;
           console.log('error saving status');
         });
       }
