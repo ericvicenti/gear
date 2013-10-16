@@ -34,11 +34,13 @@ app.post('/builds', function(req, res) {
   var hasErrorHappened = false;
   var hasPassHappened = false;
   var isNotifying = false;
+  var afterNotify = false;
   var buildId;
   db.builds.add('building', 'Starting Build', d.repoUrl, d.deployKey, d.refspec).then(function(build) {
     buildId = build.id;
     res.send(build);
     builder.build(build).then(function() {
+      console.log('PROMISE RESOLVED');
       hasPassHappened = true;
       function reportPass() {
         db.builds.setStatus('passed', 'Build Passed').then(function() {
@@ -50,6 +52,7 @@ app.post('/builds', function(req, res) {
       if (isNotifying) afterNotify = reportPass;
       else reportPass();
     }, function(err) {
+      console.log('PROMISE REJECT ', err);
       hasErrorHappened = true;
       function reportFailure() {      
         db.builds.setStatus('failed', err).then(function() {
@@ -61,11 +64,13 @@ app.post('/builds', function(req, res) {
       if (isNotifying) afterNotify = reportFailure;
       else reportFailure();
     }, function(status) {
-      isNotifying = true;
+      console.log('PROMISE NOTIFY ', status);
       if(!hasErrorHappened && !hasPassHappened) {      
+        isNotifying = true;
         db.builds.setStatus(buildId, status.status, status.message).then(function() {
           isNotifying = false;
           if(afterNotify) afterNotify();
+          afterNotify = false;
           console.log('saved status ', status.message);
         }, function() {
           isNotifying = false;

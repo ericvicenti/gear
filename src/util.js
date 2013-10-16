@@ -44,9 +44,9 @@ _.mixin({
       if (error) {
         doExec.reject(error);
       } else {
-        console.log('FINISHING EXEC');
-        console.log('ERR:', error, 'STDOUT:', stdout, 'STDERR:', stderr);
-        console.log('/ FINISHING EXEC');
+        // console.log('FINISHING EXEC');
+        // console.log('ERR:', error, 'STDOUT:', stdout, 'STDERR:', stderr);
+        // console.log('/ FINISHING EXEC');
         doExec.resolve(stdout.trim(), stderr.trim());
       }
     });
