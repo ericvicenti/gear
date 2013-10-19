@@ -27,7 +27,7 @@ function getInstanceLogFile(instanceId) {
 
 function getSupervisorConfig(instanceId, config) {
   var get = _.defer();
-  fs.readFile('../templates/instance.conf', {encoding: 'utf8'}, function(err, template) {
+  _.fs.readFile('../templates/instance.conf', {encoding: 'utf8'}, function(err, template) {
     if(err) return get.reject(err);
     template = _.template(template);
     var config = template({
