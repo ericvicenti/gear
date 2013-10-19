@@ -40,6 +40,7 @@ function getSupervisorConfig(instanceId, config) {
     + 'stopwaitsecs=30 \n '
     + 'stdout_logfile='+logFile+' \n '
     + 'stderr_logfile='+logFile+' \n ';
+  return template;
 }
 
 function supervisorInstanceConfigure(instanceId, config) {
