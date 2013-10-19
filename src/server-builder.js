@@ -125,9 +125,6 @@ function packageBuild(name) {
   return pack.promise;
 }
 
-// unpackage:
-// tar -xf /root/builds/mybuild.tar -C /root/instances/myinstance/
-
 function cleanBuild(name) {
   var clean = _.defer();
   var gitDir = _.path.join(buildDir, name);

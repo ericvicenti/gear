@@ -21,31 +21,24 @@ ln /nvm/v$NODE_VERSION/bin/npm /usr/bin/npm
 npm install -g bower
 npm install -g grunt-cli
 
-cd /
-mkdir /strapling
-mkdir /strapling/log
-git clone git://github.com/ericvicenti/strapling.git /strapling/strapling 
-cd /strapling/strapling
+git clone git://github.com/ericvicenti/gear.git /root/gear 
+cd /root/gear
 npm install
 
-
-cd ~
-
 echo "
-[program:strapling]
-command=/usr/bin/node /strapling/strapling
-process_name: strapling
-directory=/strapling/
+[program:gear]
+command=/usr/bin/node /root/gear/src/server
+process_name: gear
+directory=/root/gear/
 environment=NODE_ENV='prod'
 user=root
 autostart=true
 autorestart=true
 redirect_stderr=False
 stopwaitsecs=30
-stdout_logfile=/strapling/log/stdout.log
-stderr_logfile=/strapling/log/stderr.log
+stdout_logfile=/root/gear.log
+stderr_logfile=/root/gear.log
 
-" > /etc/supervisor/conf.d/strapling.conf
+" > /etc/supervisor/conf.d/gear.conf
 
-supervisorctl reread
-supervisorctl add strapling
+supervisorctl update

@@ -113,6 +113,11 @@ app.get('/instances', function(req, res) {
   sendResponse(res, db.instances.list());
 });
 
+app.post('/instances/:name', function(req, res) {
+  var i = req.body;
+  sendResponse(res, db.instances.set(req.params.name, i.build, i.config));
+});
+
 app.get('/instances/:name', function(req, res) {
   sendResponse(res, db.instances.get(req.params.name));
 });

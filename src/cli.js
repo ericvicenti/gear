@@ -93,11 +93,18 @@ client.start().then(function() {
               }, cliErrorHandler);
             case 'instances':
             case 'instance':
-              return cliResponse(client.instances.list(serverName));
               var instanceName = args.shift();
               if(!instanceName) return cliResponse(client.instances.list(serverName));
-              else return client.instances.get(serverName, instanceName).then(function(instance) {
-                command = args.shift();
+              command = args.shift();
+              if(command == 'set') {
+                var buildId = args.shift();
+                var configFile = args.shift()
+                if (!configFile) configFile = '.' + instanceName + '.json';
+                var config = _.fs.readFileSync(configFile, {encoding: 'utf8'});
+                config = JSON.parse(config);
+                return cliResponse(client.instances.set(serverName, instanceName, buildId, config));
+              }
+              client.instances.get(serverName, instanceName).then(function(instance) {
                 if(!command) console.log(instance);
                 switch (command) {
                   case 'remove':
