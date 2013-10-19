@@ -26,33 +26,31 @@ function getInstanceLogFile(instanceId) {
 }
 
 function getSupervisorConfig(instanceId, config) {
-  var logFile = getInstanceLogFile(instanceId);
-  var instanceDir = getInstanceDir(instanceId);
-  var template = '[program:'+instanceId+'] \n '
-    + 'command=/usr/bin/node '+instanceDir+' \n '
-    + 'process_name: '+instanceId+' \n '
-    + 'directory='+instanceDir+'/ \n '
-    + "environment=NODE_ENV='prod' \n "
-    + 'user=root \n '
-    + 'autostart=true \n '
-    + 'autorestart=true \n '
-    + 'redirect_stderr=False \n '
-    + 'stopwaitsecs=30 \n '
-    + 'stdout_logfile='+logFile+' \n '
-    + 'stderr_logfile='+logFile+' \n ';
-  return template;
+  var get = _.defer();
+  fs.readFile('../templates/instance.conf', {encoding: 'utf8'}, function(err, template) {
+    if(err) return get.reject(err);
+    template = _.template(template);
+    var config = template({
+      id: instanceId,
+      dir: getInstanceDir(instanceId),
+      logFile: getInstanceLogFile(instanceId)
+    });
+    get.resolve(config);
+  });
+  return get.promise;
 }
 
 function supervisorInstanceConfigure(instanceId, config) {
-  var configStr = getSupervisorConfig(instanceId, config);
   var configure = _.defer();
-  var configFile = getInstanceSupervisorConfigFile(instanceId);
-  _.fs.writeFile(configFile, configStr, {encoding: 'utf8'}, function(err) {
-    if(err) configure.reject(err);
-    else {
-      supervisorUpdate().then(configure.resolve, configure.reject);
-    }
-  });
+  getSupervisorConfig(instanceId, config).then(function(configStr) {
+    var configFile = getInstanceSupervisorConfigFile(instanceId);
+    _.fs.writeFile(configFile, configStr, {encoding: 'utf8'}, function(err) {
+      if(err) configure.reject(err);
+      else {
+        supervisorUpdate().then(configure.resolve, configure.reject);
+      }
+    });
+  }, configure.reject);
   return configure.promise;
 }
 
