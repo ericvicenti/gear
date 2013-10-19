@@ -32,7 +32,7 @@ function getSupervisorConfig(instanceId, config) {
     + 'command=/usr/bin/node '+instanceDir+' \n '
     + 'process_name: '+instanceId+' \n '
     + 'directory='+instanceDir+'/ \n '
-    + 'environment=NODE_ENV='prod' \n '
+    + "environment=NODE_ENV='prod' \n "
     + 'user=root \n '
     + 'autostart=true \n '
     + 'autorestart=true \n '
