@@ -136,7 +136,7 @@ g.instances.list = function(serverName) {
 
 g.instances.set = function(serverName, instanceName, buildId, config) {
   var opts = {};
-  opts.method = 'PUT';
+  opts.method = 'POST';
   opts.path = '/instances/'+instanceName;
   opts.data = {
     build: buildId,
@@ -159,7 +159,7 @@ g.instances.getConfig = function(serverName, instanceName) {
 
 g.instances.setConfig = function(serverName, instanceName, config) {
   var opts = {};
-  opts.method = 'PUT';
+  opts.method = 'POST';
   opts.path = '/instances/'+instanceName;
   opts.data = { config: config };
   return sendServerNameRequest(serverName, opts);
@@ -167,7 +167,7 @@ g.instances.setConfig = function(serverName, instanceName, config) {
 
 g.instances.setBuild = function(serverName, instanceName, buildId) {
   var opts = {};
-  opts.method = 'PUT';
+  opts.method = 'POST';
   opts.path = '/instances/'+instanceName;
   opts.data = { build: buildId };
   return sendServerNameRequest(serverName, opts);

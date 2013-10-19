@@ -94,14 +94,19 @@ client.start().then(function() {
             case 'instances':
             case 'instance':
               var instanceName = args.shift();
+              console.log('what what', instanceName)
               if(!instanceName) return cliResponse(client.instances.list(serverName));
               command = args.shift();
+              console.log('what what', command)
               if(command == 'set') {
                 var buildId = args.shift();
                 var configFile = args.shift()
-                if (!configFile) configFile = '.' + instanceName + '.json';
+                console.log('config ', buildId, configFile);
+                if (!configFile) configFile = './' + instanceName + '.json';
                 var config = _.fs.readFileSync(configFile, {encoding: 'utf8'});
+                console.log('config ', config);
                 config = JSON.parse(config);
+                console.log('requesting ', serverName, instanceName, buildId, config)
                 return cliResponse(client.instances.set(serverName, instanceName, buildId, config));
               }
               client.instances.get(serverName, instanceName).then(function(instance) {

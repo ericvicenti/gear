@@ -163,10 +163,15 @@ var instances = module.exports = {};
 
 instances.set = function(instanceId, buildId, config) {
   var set = _.defer();
+  console.log('SETTING CONFIG ', instanceId, config);
   saveConfig(instanceId, config).then(function() {
+    console.log('BUILD DEPLOY ', buildId);
     deployBuild(instanceId, buildId).then(function() {
+      console.log('CONFIG DEPLOY ', instanceId);
       deployConfig(instanceId).then(function() {
+        console.log('SUPERVISOR CONFIG ', instanceId, config);
         supervisorInstanceConfigure(instanceId, config).then(function() {
+          console.log('DONE SETTING')
           set.resolve();
         }, set.reject);
       }, set.reject);
