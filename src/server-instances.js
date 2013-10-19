@@ -43,7 +43,7 @@ function getSupervisorConfig(instanceId, config) {
 }
 
 function supervisorInstanceConfigure(instanceId, config) {
-  var configStr = getSupervisorConfig;
+  var configStr = getSupervisorConfig(instanceId, config);
   var configure = _.defer();
   var configFile = getInstanceSupervisorConfigFile(instanceId);
   _.fs.writeFile(configFile, configStr, {encoding: 'utf8'}, function(err) {
