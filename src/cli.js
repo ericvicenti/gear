@@ -94,26 +94,30 @@ client.start().then(function() {
             case 'instances':
             case 'instance':
               var instanceName = args.shift();
-              console.log('what what', instanceName)
               if(!instanceName) return cliResponse(client.instances.list(serverName));
               command = args.shift();
-              console.log('what what', command)
-              if(command == 'set') {
+              if (command == 'set') {
                 var buildId = args.shift();
                 var configFile = args.shift()
-                console.log('config ', buildId, configFile);
                 if (!configFile) configFile = './' + instanceName + '.json';
                 var config = _.fs.readFileSync(configFile, {encoding: 'utf8'});
-                console.log('config ', config);
                 config = JSON.parse(config);
-                console.log('requesting ', serverName, instanceName, buildId, config)
                 return cliResponse(client.instances.set(serverName, instanceName, buildId, config));
               }
               client.instances.get(serverName, instanceName).then(function(instance) {
-                if(!command) console.log(instance);
+                if(!command) return console.log(instance);
                 switch (command) {
                   case 'remove':
                     return cliResponse(client.instances.remove(serverName, instanceName));
+                  case 'setConfig':
+                    var configFile = args.shift()
+                    if (!configFile) configFile = './' + instanceName + '.json';
+                    var config = _.fs.readFileSync(configFile, {encoding: 'utf8'});
+                    config = JSON.parse(config);
+                    return cliResponse(client.instances.setConfig(serverName, instanceName, config));
+                  case 'setBuild':
+                    var buildId = args.shift()
+                    return cliResponse(client.instances.setBuild(serverName, instanceName, buildId));
                   default:
                     throw new Error('Cannot run "'+command+'" command on an instance');
                 }

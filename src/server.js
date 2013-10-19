@@ -115,7 +115,27 @@ app.get('/instances', function(req, res) {
 
 app.post('/instances/:name', function(req, res) {
   var i = req.body;
-  sendResponse(res, instances.set(req.params.name, i.build, i.config));
+  var instanceName = req.params.name;
+  db.instances.get(instanceName).then(function(instance) {
+    if (i.build) {
+      db.builds.get(i.build).then(function(build) {
+        if(!build) return res.send(400, 'Build ID '+i.build+' not found');
+        if (config) {
+          sendResponse(res, instances.set(instanceName, i.build, i.config));
+        } else {
+          if(!instance) return res.send(400, 'Must "set" instance '+instanceName+' before changing build');
+          sendResponse(res, instances.setBuild(instanceName, i.build));        
+        }
+      }, function(err) {
+        res.send(500, 'Error checking build '+i.build);
+      });
+    } else if(i.config) {
+      if(!instance) return res.send(400, 'Must "set" instance '+instanceName+' before changing config');
+      sendResponse(res, instances.setConfig(instanceName, i.config));        
+    } else res.send(400, 'Must send build or configuration to instance');
+  }, function(err) {
+    res.send(500, 'Error checking instance');
+  });
 });
 
 app.get('/instances/:name', function(req, res) {
