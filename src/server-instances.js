@@ -95,8 +95,11 @@ function deployBuild(instanceId, buildId) {
   var deploy = _.defer();
   var tarPath = '/root/builds/build-'+buildId+'.tar';
   var destPath = getInstanceDir(instanceId);
+  console.log('cleaning instance.. ', instanceId);
   cleanInstance(instanceId).then(function() {
+    console.log('creating ',destPath);
     _.fs.mkdir(destPath, function(err) {
+      console.log('extracting '+tarPath+' into '+destPath)
       var command = 'tar -xf '+tarPath+' -C '+destPath+'/';
       _.exec(command, {
       }).then(function(stdout, stderr) {
@@ -182,9 +185,13 @@ instances.set = function(instanceId, buildId, config) {
 
 instances.setBuild = function(instanceId, buildId) {
   var set = _.defer();
+  console.log('deploying build')
   deployBuild(instanceId, buildId).then(function() {
+    console.log('deploying config')
     deployConfig(instanceId).then(function() {
+      console.log('restarting '+instanceId)
       supervisorInstanceRestart(instanceId).then(function() {
+        console.log('done!')
         set.resolve();
       }, set.reject);
     }, set.reject);
