@@ -116,14 +116,19 @@ app.get('/instances', function(req, res) {
 app.post('/instances/:name', function(req, res) {
   var i = req.body;
   var instanceName = req.params.name;
+  console.log("INSTANCE SET RECIEVED ", instanceName, i)
   db.instances.get(instanceName).then(function(instance) {
+    console.log('INSTANCE GET RETRIEVED ', instance)
     if (i.build) {
       db.builds.get(i.build).then(function(build) {
+        console.log('BUILD RETRIEVED ', build);
         if(!build) return res.send(400, 'Build ID '+i.build+' not found');
         if (config) {
+          console.log('SETTING INSTANCE');
           sendResponse(res, instances.set(instanceName, i.build, i.config));
         } else {
           if(!instance) return res.send(400, 'Must "set" instance '+instanceName+' before changing build');
+          console.log('SETTING INSTANCE BUILD');
           sendResponse(res, instances.setBuild(instanceName, i.build));        
         }
       }, function(err) {
@@ -131,6 +136,7 @@ app.post('/instances/:name', function(req, res) {
       });
     } else if(i.config) {
       if(!instance) return res.send(400, 'Must "set" instance '+instanceName+' before changing config');
+        console.log('SETTING INSTANCE CONFIG');
       sendResponse(res, instances.setConfig(instanceName, i.config));        
     } else res.send(400, 'Must send build or configuration to instance');
   }, function(err) {
