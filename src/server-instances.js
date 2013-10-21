@@ -33,7 +33,8 @@ function getSupervisorConfig(instanceId, config) {
     var config = template({
       id: instanceId,
       dir: getInstanceDir(instanceId),
-      logFile: getInstanceLogFile(instanceId)
+      logFile: getInstanceLogFile(instanceId),
+      lastChanged: +(new Date())
     });
     get.resolve(config);
   });
