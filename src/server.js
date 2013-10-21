@@ -124,19 +124,32 @@ app.post('/instances/:name', function(req, res) {
         console.log('BUILD RETRIEVED ', build);
         if(!build) return res.send(400, 'Build ID '+i.build+' not found');
         if (i.config) {
-          console.log('SETTING INSTANCE');
-          sendResponse(res, instances.set(instanceName, i.build, i.config));
+          console.log('SETTING INSTANCE IN DB');
+          db.instances.set(instanceName, i.build).then(function(){
+            console.log('SETTING INSTANCE');
+            sendResponse(res, instances.set(instanceName, i.build, i.config));
+          }, function(err) {
+            res.send(500, 'Error setting instance in db.');
+          });
+
         } else {
           if(!instance) return res.send(400, 'Must "set" instance '+instanceName+' before changing build');
           console.log('SETTING INSTANCE BUILD');
-          sendResponse(res, instances.setBuild(instanceName, i.build));        
+          instances.setBuild(instanceName, i.build).then(function() {
+            console.log('SETTING INSTANCE BUILD IN DB');
+            db.instances.set(instanceName, i.build).then(function(){
+              res.send(200);
+            }, function(err) {
+              res.send(500, 'Error setting instance in db.');
+            });
+          });
         }
       }, function(err) {
         res.send(500, 'Error checking build '+i.build);
       });
     } else if(i.config) {
       if(!instance) return res.send(400, 'Must "set" instance '+instanceName+' before changing config');
-        console.log('SETTING INSTANCE CONFIG');
+      console.log('SETTING INSTANCE CONFIG');
       sendResponse(res, instances.setConfig(instanceName, i.config));        
     } else res.send(400, 'Must send build or configuration to instance');
   }, function(err) {
