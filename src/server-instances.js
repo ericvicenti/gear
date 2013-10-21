@@ -196,10 +196,17 @@ instances.getConfig = function(instanceId) {
 }
 
 instances.setConfig = function(instanceId, config) {
+  console.log('SAVING CONFIG ', instanceId, config);
   var set = _.defer();
   saveConfig(instanceId, config).then(function() {
+    console.log('DEPLOYING CONFIG ');
+
     deployConfig(instanceId).then(function() {
+      console.log('CONFIGURING INSTANCE');
+
       supervisorInstanceConfigure(instanceId, config).then(function() {
+        console.log('DONE');
+
         set.resolve();
       }, set.reject);
     }, set.reject);
