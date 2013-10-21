@@ -123,7 +123,7 @@ app.post('/instances/:name', function(req, res) {
       db.builds.get(i.build).then(function(build) {
         console.log('BUILD RETRIEVED ', build);
         if(!build) return res.send(400, 'Build ID '+i.build+' not found');
-        if (config) {
+        if (i.config) {
           console.log('SETTING INSTANCE');
           sendResponse(res, instances.set(instanceName, i.build, i.config));
         } else {
