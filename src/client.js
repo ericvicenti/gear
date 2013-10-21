@@ -2,16 +2,19 @@ var _ = require('./util');
 
 var db = require('./client-db');
 
-var httpsKey = _.fs.readFileSync(_.path.join(__dirname, '../keys/server.key'));
-var httpsCert = _.fs.readFileSync(_.path.join(__dirname, '../keys/server.crt'));
+var httpsKeyFile = _.path.join(__dirname, '../keys/server.key');
+var httpsKey = _.fs.existsSync(httpsKeyFile) ? _.fs.readFileSync(httpsKeyFile) : undefined;
+var httpsCertFile = _.path.join(__dirname, '../keys/server.crt');
+var httpsCert = _.fs.existsSync(httpsCertFile) ? _.fs.readFileSync(httpsCertFile) : undefined;
 
 function makeRequest(opts) {
 
   // provide opts path, data, and method
   var request = _.defer();
   var path = opts.path || '/';
+  var uri = 'https://' + opts.host + ':8888' + path;
   opts = {
-    uri: 'https://test.hkr.io:8888' + path,
+    uri: uri,
     json: opts.data,
     method: opts.method || 'GET',
     key: opts.key || httpsKey,
@@ -73,7 +76,6 @@ g.apps.list = function() {
 }
 
 g.apps.add = function(name, repoUrl, deployKey) {
-  console.log('adding with key: '+ deployKey);
   return db.apps.add(name, repoUrl, deployKey);
 }
 
