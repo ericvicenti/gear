@@ -27,7 +27,7 @@ A simple command-line app wrapping gear-client. See the [documentation](gear-cli
 2. Create a key: `ssh-keygen -t rsa -b 4096 -f ./new-server.key -P '' -C ''`
 1. Log in to the server as root
 2. Save the public key file in `/root/authorized_access.pub`
-2. Run `curl https://gist.github.com/ericvicenti/c3147941e4605a6ad813/raw | bash`
+2. Run `curl https://raw.github.com/ericvicenti/gear/master/setup.sh | bash`
  * Update Server
  * Get tools to build node
  * Use NVM to install node & npm

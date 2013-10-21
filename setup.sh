@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# curl https://raw.github.com/ericvicenti/gear/master/setup.sh | bash
+
 # Run this as root on a fresh VPS with Debian 7 x64
 
 # Install Dependencies
