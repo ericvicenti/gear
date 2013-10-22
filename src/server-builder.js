@@ -80,7 +80,7 @@ function getCommitHash(name) {
     getCommitHash.reject(err);
   });
   return getCommitHash.promise;
-}.
+}
 
 function npmInstall(name) {
   var install = _.defer();
