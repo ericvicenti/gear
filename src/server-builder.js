@@ -68,6 +68,20 @@ function checkoutRefspec(name, refspec) {
   return checkout.promise;
 }
 
+function getCommitHash(name) {
+  var gitDir = _.path.join(buildDir, name);
+  var getCommitHash = _.defer();
+  var command = 'git rev-list --max-count=1 HEAD';
+  _.exec(command, {
+    cwd: gitDir
+  }).then(function(stdout, stderr) {
+    getCommitHash.resolve(stdout);
+  }, function(err) {
+    getCommitHash.reject(err);
+  });
+  return getCommitHash.promise;
+}.
+
 function npmInstall(name) {
   var install = _.defer();
   var gitDir = _.path.join(buildDir, name);
@@ -172,17 +186,20 @@ builder.build = function(b) {
   function _continueBuild() {
     notifyBuild('Checking out refspec "'+b.refspec+'"');
     checkoutRefspec(b.buildName, b.refspec).then(function() {
-      notifyBuild('Running NPM install');
-      npmInstall(b.buildName).then(function() {
-        notifyBuild('Running Bower install');
-        bowerInstall(b.buildName).then(function() {
-          notifyBuild('Running Grunt Build');
-          gruntBuild(b.buildName).then(function() {
-            notifyBuild('Packaging Build');
-            packageBuild(b.buildName).then(function() {
-              notifyBuild('Cleaning Build');
-              cleanBuild(b.buildName).then(function() {
-/* WOAAH */     build.resolve(b);
+      getCommitHash(b.buildName).then(function(commithash) {
+        console.log('got commit hash: ', commithash);
+        notifyBuild('Running NPM install');
+        npmInstall(b.buildName).then(function() {
+          notifyBuild('Running Bower install');
+          bowerInstall(b.buildName).then(function() {
+            notifyBuild('Running Grunt Build');
+            gruntBuild(b.buildName).then(function() {
+              notifyBuild('Packaging Build');
+              packageBuild(b.buildName).then(function() {
+                notifyBuild('Cleaning Build');
+                cleanBuild(b.buildName).then(function() {
+  /* WOAAH */     build.resolve(b);
+                }, rejectBuild);
               }, rejectBuild);
             }, rejectBuild);
           }, rejectBuild);

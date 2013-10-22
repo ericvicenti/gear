@@ -10,7 +10,7 @@ var db = module.exports = {};
 
 db.start = function() {
   var start = _.defer();
-  _db.run("CREATE TABLE IF NOT EXISTS builds ( id INTEGER PRIMARY KEY AUTOINCREMENT, status TEXT, statusMsg TEXT, repoUrl TEXT, deployKey TEXT, refspec TEXT )", function(err) {
+  _db.run("CREATE TABLE IF NOT EXISTS builds ( id INTEGER PRIMARY KEY AUTOINCREMENT, status TEXT, statusMsg TEXT, repoUrl TEXT, deployKey TEXT, refspec TEXT, commithash TEXT )", function(err) {
     if(err) return start.reject(err);
     _db.run("CREATE TABLE IF NOT EXISTS instances ( name TEXT PRIMARY KEY, build INTEGER, FOREIGN KEY(build) REFERENCES builds(id) )", function(err) {
       if(err) return start.reject(err);
@@ -59,6 +59,18 @@ db.builds.setStatus = function(id, status, statusMsg) {
     1: status,
     2: statusMsg,
     3: id
+  }, function(err) {
+    if(err) return set.reject(err);
+    else return set.resolve();
+  });
+  return set.promise;
+}
+
+db.builds.setCommithash = function(id, commithash) {
+  var set = _.defer();
+  _db.run("UPDATE builds SET commithash = ? WHERE id LIKE ?", {
+    1: commithash,
+    2: id
   }, function(err) {
     if(err) return set.reject(err);
     else return set.resolve();
