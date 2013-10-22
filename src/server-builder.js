@@ -187,7 +187,7 @@ builder.build = function(b) {
     notifyBuild('Checking out refspec "'+b.refspec+'"');
     checkoutRefspec(b.buildName, b.refspec).then(function() {
       getCommitHash(b.buildName).then(function(commithash) {
-        console.log('got commit hash: ', commithash);
+        build.notify({ status: 'commithash', message: commithash});
         notifyBuild('Running NPM install');
         npmInstall(b.buildName).then(function() {
           notifyBuild('Running Bower install');

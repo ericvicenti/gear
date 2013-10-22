@@ -66,6 +66,13 @@ app.post('/builds', function(req, res) {
       if (isNotifying) afterNotify = reportFailure;
       else reportFailure();
     }, function(status) {
+      if(status.status == 'commithash') {
+        return db.builds.setCommithash(buildId, status.message).then(function() {
+          console.log('commithash saved');
+        }, function(err) {
+          console.log('could not save commit hash ', err);
+        });
+      }
       if(!hasErrorHappened && !hasPassHappened) {      
         isNotifying = true;
         lastNotification = status.message;
