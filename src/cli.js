@@ -23,6 +23,54 @@ function cliResponse(promise) {
 }
 
 
+function listServers() {
+  client.servers.list().then(function(servers) {
+    console.log('NAME \tHOST');
+    console.log('=======\t=======');
+    _.each(servers, function(server) {
+      console.log(server.name+' \t'+server.host);
+    });
+  }, cliErrorHandler);
+}
+
+function printServer(server) {
+  console.log('NAME \tHOST');
+  console.log('=======\t=======');
+  console.log(server.name+' \t'+server.host);
+}
+
+function listInstances(serverName) {
+  client.instances.list(serverName).then(function(_instances) {
+    console.log('NAME \tBUILD\tSTATUS');
+    console.log('=======\t=======\t=======');
+    _.each(_instances, function(i, b) {
+      console.log(i.name+'\t'+i.build);
+    });    
+  }, cliErrorHandler);
+}
+
+function printInstance(instance) {
+  console.log('NAME \tBUILD ID\tSTATUS');
+  console.log('=======\t=======\t=======');
+  console.log(instance.name+' \t'+instance.build);
+}
+
+
+function listBuilds(serverName) {
+   client.builds.list(serverName).then(function(builds) {
+    console.log('ID\tSTATUS');
+    console.log('=======\t=======\t=======');
+    _.each(builds, function(b) {
+      console.log(b.id+'\t'+b.status);
+    });    
+  }, cliErrorHandler);
+}
+
+function printBuild(build) {
+  console.log('ID\tSTATUS\tSTATUS');
+  console.log('=======\t=======\t=======');
+  console.log(build.id);
+}
 client.start().then(function() {
 
   switch (command) {
@@ -53,13 +101,13 @@ client.start().then(function() {
     case 'server':
     case 'servers':
       serverName = args.shift();
-      if(!serverName) return cliResponse(client.servers.list());
+      if(!serverName) return listServers();
       return client.servers.get(serverName).then(function(server) {
         // in the case of a "404", send them a list
-        if(!server) return cliResponse(client.servers.list());
+        if(!server) return listServers();
         else {
           command = args.shift();
-          if(!command) console.log(server);
+          if(!command) return printServer(server);
           switch (command) {
             case 'rename':
               var newName = args.shift();
@@ -80,10 +128,10 @@ client.start().then(function() {
             case 'builds':
             case 'build':
               var id = args.shift();
-              if(!id) return cliResponse(client.builds.list(serverName));
+              if(!id) return listBuilds(serverName);
               else return client.builds.get(serverName, id).then(function(build) {
                 command = args.shift();
-                if(!command) console.log(build);
+                if(!command) return printBuild(build);
                 switch (command) {
                   case 'remove':
                     return cliResponse(client.builds.remove(serverName, id));
@@ -94,7 +142,7 @@ client.start().then(function() {
             case 'instances':
             case 'instance':
               var instanceName = args.shift();
-              if(!instanceName) return cliResponse(client.instances.list(serverName));
+              if(!instanceName) return listInstances(serverName);
               command = args.shift();
               if (command == 'set') {
                 var buildId = args.shift();
@@ -105,7 +153,7 @@ client.start().then(function() {
                 return cliResponse(client.instances.set(serverName, instanceName, buildId, config));
               }
               client.instances.get(serverName, instanceName).then(function(instance) {
-                if(!command) return console.log(instance);
+                if(!command) return printInstance(instance);
                 switch (command) {
                   case 'remove':
                     return cliResponse(client.instances.remove(serverName, instanceName));
