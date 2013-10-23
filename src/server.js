@@ -169,7 +169,7 @@ app.get('/instances/:name', function(req, res) {
 });
 
 app.get('/instances/:name/config', function(req, res) {
-  sendResponse(res, db.instances.getConfig(req.params.name));
+  sendResponse(res, instances.getConfig(req.params.name));
 });
 
 app.del('/instances/:name', function(req, res) {
