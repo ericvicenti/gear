@@ -168,6 +168,10 @@ app.get('/instances/:name', function(req, res) {
   sendResponse(res, db.instances.get(req.params.name));
 });
 
+app.get('/instances/:name/config', function(req, res) {
+  sendResponse(res, db.instances.getConfig(req.params.name));
+});
+
 app.del('/instances/:name', function(req, res) {
   db.instances.get(req.params.name).then(function(instance) {
     if(instance) {

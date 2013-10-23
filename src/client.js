@@ -23,12 +23,14 @@ function makeRequest(opts) {
     rejectUnauthorized: true
   };
   _.request(opts, function(err, response) {
-    var body = response.body;
-    try {
-      body = JSON.parse(body);
-    } catch(e) {}
     if(err) return request.reject(err, response);
-    else request.resolve(body);
+    else {
+      var body = response.body;
+      try {
+        body = JSON.parse(body);
+      } catch(e) {}
+      request.resolve(body);
+    }
   });
   return request.promise;
 }

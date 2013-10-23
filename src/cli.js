@@ -58,18 +58,20 @@ function printInstance(instance) {
 
 function listBuilds(serverName) {
    client.builds.list(serverName).then(function(builds) {
-    console.log('ID\tSTATUS');
-    console.log('=======\t=======\t=======');
+    console.log('ID\tSTATUS\tCOMMIT\tREFSPEC\tMESSAGE');
+    console.log('=======\t=======\t=======\t=======\t=======');
     _.each(builds, function(b) {
-      console.log(b.id+'\t'+b.status);
+      var ch = b.commithash ? b.commithash.substring(0,7) : '';
+      console.log(b.id+'\t'+b.status+'\t'+ch+'\t'+b.refspec+'\t'+b.statusMsg);
     });    
   }, cliErrorHandler);
 }
 
-function printBuild(build) {
-  console.log('ID\tSTATUS\tSTATUS');
-  console.log('=======\t=======\t=======');
-  console.log(build.id);
+function printBuild(b) {
+  var ch = b.commithash ? b.commithash.substring(0,7) : '';
+  console.log('ID\tSTATUS\tCOMMIT\tREFSPEC\tMESSAGE');
+  console.log('=======\t=======\t=======\t=======\t=======');
+  console.log(b.id+'\t'+b.status+'\t'+ch+'\t'+b.refspec+'\t'+b.statusMsg);
 }
 client.start().then(function() {
 
@@ -157,6 +159,8 @@ client.start().then(function() {
                 switch (command) {
                   case 'remove':
                     return cliResponse(client.instances.remove(serverName, instanceName));
+                  case 'config':
+                    return cliResponse(client.instances.getConfig(serverName, instanceName));
                   case 'setConfig':
                     var configFile = args.shift()
                     if (!configFile) configFile = './' + instanceName + '.json';

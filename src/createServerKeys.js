@@ -15,7 +15,7 @@ var certFileName = path.join(process.cwd(), serverHost + '.crt');
 var rsync = require("rsyncwrapper").rsync;
 
 pem.createCertificate({
-  days: 1,
+  days: 365,
   selfSigned: true,
   commonName: serverHost,
   keyBitsize: 4096
@@ -29,7 +29,7 @@ pem.createCertificate({
   rsync({
       src: keyFileName,
       dest: localHostName+":/root/server.key"
-  },function (error,stdout,stderr,cmd) {
+  }, function (error,stdout,stderr,cmd) {
       if ( error ) {
           // failed
           console.log(error.message);
