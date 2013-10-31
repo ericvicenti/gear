@@ -79,6 +79,52 @@ function supervisorUpdate() {
   return supervisorctl.promise;
 }
 
+function parseSupervisorStatus(input) {
+  var lines = input.split('\n');
+  var processes = {};
+  _.each(lines, function(line) {
+    var a = line.split(' ');
+    var name = a[0];
+    if(!name || name=='') return;
+    a = line.split(name);
+    a.shift();
+    a = a.join(name);
+    a = _.str.trim(a);
+    a = a.split(' ');
+    var status = a.shift();
+    a = a.join(' ');
+    a = _.str.trim(a);
+    a = a.split('pid ');
+    a.shift();
+    a = a.join('pid ');
+    a = a.split(',');
+    var pid = a.shift();
+    a = a.join(',');
+    a = a.split('uptime ');
+    a.shift();
+    var uptime = a.shift();
+    processes[name] = {
+      name: name,
+      status: status,
+      pid: Number(pid),
+      uptime: uptime
+    };
+  });
+  return processes;
+}
+
+function supervisorStatus() {
+  var supervisorctl = _.defer();
+  var command = 'supervisorctl status';
+  _.exec(command, {
+  }).then(function(stdout, stderr) {
+    supervisorctl.resolve(parseSupervisorStatus(stdout));
+  }, function(err) {
+    supervisorctl.reject(err);
+  });
+  return supervisorctl.promise;
+}
+
 function supervisorInstanceRemove(instanceId) {
   var remove = _.defer();
   var configFile = getInstanceConfigFile(instanceId);
@@ -181,6 +227,18 @@ instances.set = function(instanceId, buildId, config) {
     }, set.reject);
   }, set.reject);
   return set.promise;
+}
+
+instances.getStatus = function(instanceId) {
+  var get = _.defer();
+  supervisorStatus().then(function(status) {
+    delete status.gear;
+    if(instanceId) return get.resolve(status[instanceId]);
+    else get.resolve(status);
+  }, function(err) {
+    get.reject(err);
+  });
+  return get.promise;
 }
 
 instances.setBuild = function(instanceId, buildId) {

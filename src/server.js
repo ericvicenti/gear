@@ -117,7 +117,20 @@ app.get('/builds', function(req, res) {
 });
 
 app.get('/instances', function(req, res) {
-  sendResponse(res, db.instances.list());
+  db.instances.list().then(function(instances) {
+    instances.getStatus().then(function(status) {
+      instances = _.map(instances, function(i) {
+        var s = status[i.name];
+        if(s) i = _.extend(i, s);
+        return i;
+      });
+      res.send(200, instances);
+    }, function(err) {
+      res.send(500, 'Error getting statuses');
+    });
+  }, function(err) {
+    res.send(500, 'Error fetching instances');
+  });
 });
 
 app.post('/instances/:name', function(req, res) {
