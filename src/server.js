@@ -117,14 +117,14 @@ app.get('/builds', function(req, res) {
 });
 
 app.get('/instances', function(req, res) {
-  db.instances.list().then(function(instances) {
+  db.instances.list().then(function(ins) {
     instances.getStatus().then(function(status) {
-      instances = _.map(instances, function(i) {
+      ins = _.map(ins, function(i) {
         var s = status[i.name];
         if(s) i = _.extend(i, s);
         return i;
       });
-      res.send(200, instances);
+      res.send(200, ins);
     }, function(err) {
       res.send(500, 'Error getting statuses');
     });
