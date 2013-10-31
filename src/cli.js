@@ -44,35 +44,39 @@ function listInstances(serverName) {
     console.log('NAME \tBUILD\tSTATUS');
     console.log('=======\t=======\t=======');
     _.each(_instances, function(i, b) {
-      console.log(i.name+'\t'+i.build);
+      console.log(i.name+'\t'+i.build+'\t'+i.status);
     });    
   }, cliErrorHandler);
 }
 
 function printInstance(instance) {
-  console.log('NAME \tBUILD ID\tSTATUS');
-  console.log('=======\t=======\t=======');
-  console.log(instance.name+' \t'+instance.build);
+  console.log('Name: '+instance.name);
+  console.log('Build: '+instance.build);
+  console.log('Status: '+instance.status);
+  console.log('PID: '+instance.pid);
+  console.log('Uptime: '+instance.uptime);
 }
 
 
 function listBuilds(serverName) {
    client.builds.list(serverName).then(function(builds) {
-    console.log('ID\tSTATUS\tCOMMIT\tREFSPEC\tMESSAGE');
-    console.log('=======\t=======\t=======\t=======\t=======');
+    console.log('ID\tSTATUS\tCOMMIT\tREFSPEC');
+    console.log('=======\t=======\t=======\t=======');
     _.each(builds, function(b) {
       var ch = b.commithash ? b.commithash.substring(0,7) : '';
-      console.log(b.id+'\t'+b.status+'\t'+ch+'\t'+b.refspec+'\t'+b.statusMsg);
+      console.log(b.id+'\t'+b.status+'\t'+ch+'\t'+b.refspec);
     });    
   }, cliErrorHandler);
 }
 
-function printBuild(b) {
-  var ch = b.commithash ? b.commithash.substring(0,7) : '';
-  console.log('ID\tSTATUS\tCOMMIT\tREFSPEC\tMESSAGE');
-  console.log('=======\t=======\t=======\t=======\t=======');
-  console.log(b.id+'\t'+b.status+'\t'+ch+'\t'+b.refspec+'\t'+b.statusMsg);
+function printBuild(build) {
+  console.log('Id: '+build.id);
+  console.log('Status: '+ build.status + ' - ' + build.statusMsg);
+  console.log('Repo Url: '+build.repoUrl);
+  console.log('Refspec: '+build.refspec);
+  console.log('Commit Hash: '+build.commithash);
 }
+
 client.start().then(function() {
 
   switch (command) {
