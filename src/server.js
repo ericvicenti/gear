@@ -178,7 +178,18 @@ app.post('/instances/:name', function(req, res) {
 });
 
 app.get('/instances/:name', function(req, res) {
-  sendResponse(res, db.instances.get(req.params.name));
+  db.instances.get(req.params.name).then(function(i) {
+    if (!i) return res.send(404, 'Instance not found');
+    instances.getStatus().then(function(status) {
+      var s = status[i.name];
+      if(s) i = _.extend(i, s);
+      res.send(200, i);
+    }, function(err) {
+      res.send(500, 'Error getting statuses');
+    });
+  }, function(err) {
+    res.send(500, 'Error fetching instance');
+  });
 });
 
 app.get('/instances/:name/config', function(req, res) {
