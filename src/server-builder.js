@@ -114,12 +114,24 @@ function gruntBuild(name) {
   var build = _.defer();
   var gitDir = _.path.join(buildDir, name);
   var command = '/nvm/v0.10.18/bin/grunt build';
-  _.exec(command, {
-    cwd: gitDir
-  }).then(function(stdout, stderr) {
-    build.resolve(stdout, stderr);
-  }, function(err) {
-    build.reject(err);
+  var _gruntfile_js = _.path.join(gitDir, 'Gruntfile.js');
+  var _gruntfile_cs = _.path.join(gitDir, 'Gruntfile.coffee');
+
+  function goBuild() {  
+    _.exec(command, {
+      cwd: gitDir
+    }).then(function(stdout, stderr) {
+      build.resolve(stdout, stderr);
+    }, function(err) {
+      build.reject(err);
+    });
+  }
+  _.fs.exists(_gruntfile_cs, function(cs_exits) {
+    if (cs_exits) return goBuild();
+    else _.fs.exists(_gruntfile_js, function(js_exists) {
+      if (js_exists) return goBuild();
+      else return build.resolve(); // if there is no gruntfile, we will consider this a success
+    });
   });
   return build.promise;
 }
