@@ -127,7 +127,7 @@ client.start().then(function() {
                 case 'build':
                   var appName = args.shift();
                   var refspec = args.shift();
-                  return cliResponse(client.builds.create(serverName, appName, refspec));
+                  return cliResponse(client.builds.build(serverName, appName, refspec));
                 default:
                   throw new Error('Cannot add "'+type+'" to this server');
               }
@@ -157,6 +157,13 @@ client.start().then(function() {
                 var config = _.fs.readFileSync(configFile, {encoding: 'utf8'});
                 config = JSON.parse(config);
                 return cliResponse(client.instances.set(serverName, instanceName, buildId, config));
+              }
+              if (command == 'build') {
+                var appName = args.shift();
+                var refspec = args.shift();
+                var configFile = args.shift()
+                var config = configFile ? JSON.parse(_.fs.readFileSync(configFile, {encoding: 'utf8'})) : undefined;
+                return cliResponse(client.instances.build(serverName, instanceName, appName, refspec, config));
               }
               client.instances.get(serverName, instanceName).then(function(instance) {
                 if(!command) return printInstance(instance);

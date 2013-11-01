@@ -121,6 +121,34 @@ g.builds.create = function(serverName, appName, refspec) {
   return create.promise;
 }
 
+g.builds.build = function(serverName, appName, refspec) {
+  var doBuild = _.defer();
+  var buildId, statusMessage, status;
+  function checkStatus() {
+    g.builds.get(serverName, buildId).then(function(build) {
+      if(build.statusMsg !== statusMessage) {
+        status = build.status;
+        statusMessage = build.statusMsg;
+        doBuild.notify(statusMessage);
+      }
+      if (build.status == 'passed') {
+        doBuild.resolve(build);
+      } else if(build.status == 'failed') {
+        doBuild.reject(statusMessage);
+      } else {
+        setTimeout(checkStatus, 1000);
+      }
+    }, doBuild.reject);
+  }
+  g.builds.create(serverName, appName, refspec).then(function(build) {
+    buildId = build.id;
+    statusMessage = build.statusMsg;
+    status = build.status;
+    checkStatus();
+  }, doBuild.reject);
+  return doBuild.promise;
+}
+
 g.builds.get = function(serverName, buildId) {
   var opts = {};
   opts.path = '/builds/'+buildId;
@@ -151,6 +179,17 @@ g.instances.set = function(serverName, instanceName, buildId, config) {
     config: config
   }
   return sendServerNameRequest(serverName, opts);
+}
+
+g.instances.build = function(serverName, instanceName, appName, refspec, config) {
+  var doBuild = _.defer();
+  g.builds.build(serverName, appName, refspec).then(function(build) {
+    if(config) g.instances.set(serverName, instanceName, build.id, config).then(doBuild.resolve, doBuild.reject);
+    else g.instances.setBuild(serverName, instanceName, build.id).then(function() {
+      doBuild.resolve(build);
+    }, doBuild.reject);
+  }, doBuild.reject, doBuild.notify);
+  return doBuild.promise;
 }
 
 g.instances.get = function(serverName, instanceName) {
