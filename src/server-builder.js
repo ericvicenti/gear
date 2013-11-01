@@ -175,12 +175,13 @@ function removeBuild(name) {
 builder.build = function(b) {
   var build = _.defer();
   b.buildName = 'build-'+b.id;
-  b.hostName = 'gear-host-'+b.id;
+  var hostName = 'gear-host-'+b.id;
   var deployKeyFile = _.path.join(buildDir, 'deployKey-'+b.id);
   function rejectBuild(err) {
     build.reject.apply(this, arguments);
   }
   function notifyBuild(message) {
+    console.log('Build Status: ', message);
     build.notify({ status: 'building', message: message });
   }
   function _continueBuild() {
