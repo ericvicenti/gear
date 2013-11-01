@@ -231,7 +231,7 @@ builder.build = function(b) {
         notifyBuild('Configuring SSH for '+userName+' on '+host);
         configureSsh(hostName, host, userName, deployKeyFile).then(function() {
           notifyBuild('Checking out repo '+repoPath+' on '+host+' as '+userName);
-          checkoutRepo(buildName, hostName+':'+repoPath).then(function(a, b, c) {
+          checkoutRepo(b.buildName, hostName+':'+repoPath).then(function(a, b, c) {
             _continueBuild();
           }, rejectBuild);
         }, rejectBuild);
