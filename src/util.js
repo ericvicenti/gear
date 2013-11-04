@@ -7,8 +7,11 @@ _.https = require('https');
 _.request = require('request');
 _.fs = require('fs');
 _.os = require('os');
+_.crypto = require('crypto');
 _.Q = require('q');
+_.pem = require('pem');
 _.str = require('underscore.string');
+_.rsync = require("rsyncwrapper").rsync;
 
 _.mixin({
   ensureDirectorySync: function(dir) {
@@ -36,6 +39,25 @@ _.mixin({
 });
 
 _.mixin({
+
+  prepareTempFolder: function() {
+    var prepare = _.defer();
+    _.crypto.randomBytes(48, function(ex, buf) {
+      var token = buf.toString('hex');
+      var tempDir = _.os.tmpdir();
+      tempDir = _.path.join(tempDir, token);
+      _.fs.readdir(tempDir, function(err, files) {
+        // if this has no error, the directory is good to go
+        // (although it will probably fail because we just invented a new path which doesnt yet exist)
+        if (!err) prepare.resolve(tempDir);
+        _.fs.mkdir(tempDir, function(err) {
+          if (err) prepare.reject(err);
+          else prepare.resolve(tempDir);
+        });
+      });
+    });
+    return prepare.promise;
+  },
 
   exec: function(command, options) {
     // execute command

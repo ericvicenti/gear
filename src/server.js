@@ -214,27 +214,70 @@ app.del('/instances/:name', function(req, res) {
   });
 });
 
+var keyPath = '/root/server.key';
+var certPath = '/root/server.crt';
 
-var httpsKey = _.fs.readFileSync('/root/server.key');
-var httpsCert = _.fs.readFileSync('/root/server.crt');
+var server;
 
-var httpsOpts = {
-  key: httpsKey,
-  cert: httpsCert,
-  ca: [ httpsCert ],
-  rejectUnauthorized: true
-};
+function startServer() {
+  var start = _.defer();
+  _.fs.readFile(keyPath, function(err, httpsKey) {
+    if(err) return start.reject(err);
+    _.fs.readFile(certPath, function(err, httpsCert) {
+      if(err) return start.reject(err);
+      var httpsOpts = {
+        key: httpsKey,
+        cert: httpsCert,
+        ca: [ httpsCert ],
+        rejectUnauthorized: true
+      };
+      server = _.https.createServer(httpsOpts, app);
+      server.listen(8888, function(err) {
+        if(err) start.reject(err);
+        else start.resolve();
+      });
+    })
+  });
+  return start.promise;
+}
+
+function restartServer() {
+  var restart = _.defer();
+  if(server) {
+    console.log('Restarting server..');
+    server.close(function(err) {
+      if(err) {
+        console.log('Could not stop old server ', err);
+        return restart.reject(err);
+      }
+      setTimeout(function() {
+        restart.resolve(startServer());
+      }, 1000);
+      // we want to wait because they might be changing the cert and key
+      // at the same time. we want to let changes settle before starting up again
+    });
+  } else
+    restart.resolve(startServer());
+  return restart.promise;
+}
 
 db.start().then(function(){
 
-  _.https.createServer(httpsOpts, app).listen(8888, function(err) {
-
-    if(err) return console.log('Error! ', err);
-
-    console.log('Server started on 8888');
-
+  startServer().then(function() {
+    console.log('Server Started!');
+  }, function(err) {
+    console.log('Error when first starting server: ', err);
   });
 
 }, function(err){
   console.log('Error starting db:', err);
 });
+
+_.fs.watch(certPath, function() {
+  console.log('Cert changed!');
+  restartServer().then(function() {
+    console.log('Server restarted!');
+  }, function(err) {
+    console.log('Couldnt restart server:', err);
+  });
+})

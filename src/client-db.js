@@ -12,7 +12,7 @@ db.start = function() {
   var start = _.defer();
   _db.run("CREATE TABLE IF NOT EXISTS apps ( name TEXT PRIMARY KEY, repoUrl TEXT, deployKey TEXT )", function(err) {
   
-    _db.run("CREATE TABLE IF NOT EXISTS servers ( name TEXT PRIMARY KEY, host TEXT, key TEXT, cert TEXT )", function(err) {
+    _db.run("CREATE TABLE IF NOT EXISTS servers ( name TEXT PRIMARY KEY, host TEXT, key TEXT, cert TEXT, privateKey TEXT, publicKey TEXT )", function(err) {
       start.resolve();
     });
 
@@ -96,6 +96,22 @@ db.servers.add = function(name, host, key, cert) {
     2: host,
     3: key,
     4: cert
+  }, function(err) {
+    if(err) return add.reject(err);
+    else return add.resolve();
+  })
+  return add.promise;
+}
+
+db.servers.create = function(name, host, key, cert, privateKey, publicKey) {
+  var add = _.defer();
+  _db.run("INSERT INTO servers (name, host, key, cert, privateKey, publicKey) VALUES (?, ?, ?, ?, ?, ?)", {
+    1: name,
+    2: host,
+    3: key,
+    4: cert,
+    5: privateKey,
+    6: publicKey
   }, function(err) {
     if(err) return add.reject(err);
     else return add.resolve();
