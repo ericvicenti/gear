@@ -286,7 +286,7 @@ db.start().then(function(){
   console.log('Error starting db:', err);
 });
 
-_.fs.watch(certPath, function() {
+_.fs.watchFile(certPath, function() {
   console.log('Cert changed!');
   restartServer().then(function() {
     console.log('Server restarted!');
