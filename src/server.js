@@ -9,7 +9,8 @@ var instances = require('./server-instances');
 var db = require('./server-db');
 
 app.configure(function(){
-  app.use(express.bodyParser());
+  app.use(express.json());
+  app.use(express.urlencoded());
   app.use(express.cookieParser());
 });
 
@@ -241,23 +242,35 @@ function startServer() {
   return start.promise;
 }
 
+var _isRestarting = false;
 function restartServer() {
   var restart = _.defer();
-  if(server) {
-    console.log('Restarting server..');
-    server.close(function(err) {
-      if(err) {
-        console.log('Could not stop old server ', err);
-        return restart.reject(err);
-      }
-      setTimeout(function() {
-        restart.resolve(startServer());
-      }, 1000);
-      // we want to wait because they might be changing the cert and key
-      // at the same time. we want to let changes settle before starting up again
-    });
-  } else
-    restart.resolve(startServer());
+  if(_isRestarting) restart.reject('Already restarting the server..');
+  else {
+    _isRestarting = true;
+    if(server) {
+      console.log('Restarting server..');
+      server.close(function(err) {
+        if(err) {
+          console.log('Could not stop old server ', err);
+          _isRestarting = false;
+          return restart.reject(err);
+        }
+        setTimeout(function() {
+          startServer().then(function() {        
+            _isRestarting = false;
+            restart.resolve();
+          })
+        }, 1000);
+        // we want to wait because they might be changing the cert and key
+        // at the same time. we want to let changes settle before starting up again
+      });
+    } else
+      startServer().then(function() {        
+        _isRestarting = false;
+        restart.resolve();
+      });
+  }
   return restart.promise;
 }
 
