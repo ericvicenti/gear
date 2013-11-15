@@ -43,4 +43,7 @@ stderr_logfile=/root/gear.log
 
 " > /etc/supervisor/conf.d/gear.conf
 
+# needed so we can easily edit config file later
+touch ~/.ssh/config
+
 supervisorctl update
