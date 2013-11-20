@@ -34,9 +34,8 @@ function listServers() {
 }
 
 function printServer(server) {
-  console.log('NAME \tHOST');
-  console.log('=======\t=======');
-  console.log(server.name+' \t'+server.host);
+  console.log('Name: '+server.name);
+  console.log('Host: '+server.host);
 }
 
 function listInstances(serverName) {
