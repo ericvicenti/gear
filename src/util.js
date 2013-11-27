@@ -4,7 +4,6 @@ var child_process = require('child_process');
 
 _.path = require('path');
 _.https = require('https');
-_.request = require('request');
 _.fs = require('fs');
 _.os = require('os');
 _.crypto = require('crypto');
@@ -12,6 +11,13 @@ _.Q = require('q');
 _.pem = require('pem');
 _.str = require('underscore.string');
 _.rsync = require("rsyncwrapper").rsync;
+_.SSH = require('ssh2');
+
+try {
+  _.config = require('../config');  
+} catch (e) {
+  _.config = require('../config.default');
+}
 
 _.mixin({
   ensureDirectorySync: function(dir) {
@@ -37,6 +43,12 @@ _.mixin({
     return process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
   }
 });
+
+_.qs = require('querystring');
+
+var request = require('request');
+_.request = _.Q.denodeify(request);
+
 
 _.mixin({
 

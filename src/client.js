@@ -1,6 +1,8 @@
 var _ = require('./util');
 
 var db = require('./client-db');
+var cloudflare = require('./client-cloudflare');
+var servers = require('./client-servers');
 
 var httpsKeyFile = _.path.join(__dirname, '../keys/server.key');
 var httpsKey = _.fs.existsSync(httpsKeyFile) ? _.fs.readFileSync(httpsKeyFile) : undefined;
@@ -22,17 +24,13 @@ function makeRequest(opts) {
     ca: [ opts.cert || httpsCert ],
     rejectUnauthorized: true
   };
-  _.request(opts, function(err, response) {
-    if(err) return request.reject(err, response);
-    else {
-      var body = response.body;
-      try {
-        body = JSON.parse(body);
-      } catch(e) {}
-      request.resolve(body);
-    }
+  return _.request(opts).then(function(response) {
+    var body = response.body;
+    try {
+      body = JSON.parse(body);
+    } catch(e) {}
+    return body;
   });
-  return request.promise;
 }
 
 function sendServerNameRequest(name, request) {
@@ -53,6 +51,14 @@ g.start = function() {
   return db.start();
 }
 
+g.configure = function(objectName, key, val) {
+  var c = _.config;
+  c[objectName] = c[objectName] || {};
+  c[objectName][key] = val;
+  var content = 'module.exports = '+JSON.stringify(c)+';';
+  _.fs.writeFileSync(__dirname + '/../config.js', content, {encoding: 'utf8'});
+}
+
 g.servers = {};
 
 g.servers.list = function() {
@@ -61,6 +67,10 @@ g.servers.list = function() {
 
 g.servers.add = function(name, host, key, cert) {
   return db.servers.add(name, host, key, cert);
+}
+
+g.servers.create = function(name) {
+  return servers.create(name);
 }
 
 g.servers.get = function(name) {
@@ -225,4 +235,36 @@ g.instances.destroy = function(serverName, instanceName) {
   opts.method = 'DELETE';
   opts.path = '/instances/'+instanceName;
   return sendServerNameRequest(serverName, opts);
+}
+
+
+g.domains = {};
+
+g.domains.list = function() {
+  return cloudflare.domains().then(function(domains) {
+    return _.map(domains, function(domain) {
+      return {
+        name: domain.display_name
+      }
+    })
+  });
+}
+
+g.domains.get = function(name) {
+  return cloudflare.getDomain(name).then(function(domain) {
+    return domain;
+  });
+}
+
+g.domains.getRecords = function(name) {
+  console.log('getting records for '+name)
+  return cloudflare.getDomainRecords(name).then(function(records) {
+    return records;
+  });
+}
+
+g.domains.newRecord = function(domain, record, type, content, ttl) {
+  return cloudflare.newDomainRecord(domain, record, type, content, ttl).then(function(record) {
+    return record;
+  }); 
 }

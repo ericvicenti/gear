@@ -77,8 +77,26 @@ function printBuild(build) {
 }
 
 client.start().then(function() {
-
   switch (command) {
+    case 'config':
+      var object = args.shift();
+      var key = args.shift();
+      var val = args.shift();
+      if (!object) return console.log(_.config);
+      if (!key) return console.log(_.config[object]);
+      if (!val) return console.log(_.config[object][key]);
+      client.configure(object, key, val);
+      return;
+    case 'create':
+      var what = args.shift();
+      switch (what) {
+        case 'server':
+          var name = args.shift();
+          return cliResponse(client.servers.create(name));
+        default:
+          throw new Error('Cannot create '+what);
+      }
+      return cliResponse(client.servers.create());
     case 'add':
       command = args.shift();
       if(!command) throw new Error('Must specify what to add');
@@ -210,6 +228,33 @@ client.start().then(function() {
           }
         }
       }, cliErrorHandler);
+    case 'domains':
+    case 'domain':
+
+      var domainName = args.shift();
+      if(!domainName) return cliResponse(client.domains.list());
+      command = args.shift();
+
+      if(!command) return cliResponse(client.domains.get(domainName));
+      else switch (command) {
+        case 'records':
+          command = args.shift();
+          console.log('next command: ', command)
+          if(!command) return cliResponse(client.domains.getRecords(domainName));
+          else switch (command) {
+            case 'add':
+              var record = args.shift();
+              var type = args.shift();
+              var content = args.shift();
+              var ttl = args.shift();
+              console.log('adding', domainName, record, type, content, ttl )
+              return cliResponse(client.domains.newRecord(domainName, record, type, content, ttl));
+            default:
+              throw new Error('Cannot run "'+command+'" on domain records');
+          }
+        default:
+          throw new Error('Cannot run "'+command+'" on a domain');
+      }
   }
 
 });

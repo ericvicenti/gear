@@ -10,6 +10,10 @@
     "sqlite3": "2.1.x",
     "request": "2.27.x",
     "pem": "1.2.x",
-    "rsyncwrapper": "0.0.x"
+    "rsyncwrapper": "0.0.x",
+    "digitalocean-api": "0.0.4",
+    "querystring": "~0.2.0",
+    "ssh2": "~0.2.14",
+    "ssh-keygen": "0.2.x"
   }
 }
